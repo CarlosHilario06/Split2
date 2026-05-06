@@ -729,10 +729,10 @@ app.get("/go/:slug", async (req, res) => {
     return res.send(
       renderRedirectLoader({
         url: finalUrl,
-        pixelId: process.env.FB_PIXEL_ID || "1006617537466411",
+        pixelId: route.pixelId || process.env.FB_PIXEL_ID || "1006617537466411",
         customHtml: route.splitter?.loaderHtml,
-      })
-    );
+  })
+);
   } catch (error) {
     console.error("Erro em /go/:slug:", error);
     return res.status(500).send("Erro interno no redirecionamento");
