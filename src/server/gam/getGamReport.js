@@ -5,13 +5,8 @@ import { parseGamRows } from "./parseGamRows.js";
 const NETWORK_CODE = "23174459617";
 const REPORT_ID = "7460106012";
 
-const credentials = JSON.parse(
-  fs.readFileSync(new URL("./oauth.json", import.meta.url), "utf8")
-);
-
-const token = JSON.parse(
-  fs.readFileSync(new URL("./token.json", import.meta.url), "utf8")
-);
+const credentials = JSON.parse(process.env.GAM_OAUTH_JSON);
+const token = JSON.parse(process.env.GAM_TOKEN_JSON);
 
 const { client_id, client_secret, redirect_uris } = credentials.installed;
 

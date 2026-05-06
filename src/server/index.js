@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import prisma from "./prisma.js";
-// import { getGamReportRows } from "./gam/getGamReport.js";
+import { getGamReportRows } from "./gam/getGamReport.js";
 import cron from "node-cron";
 
 const app = express();
@@ -739,9 +739,9 @@ app.get("/go/:slug", async (req, res) => {
   }
 });
 
-// syncGamAutomatically();
+syncGamAutomatically();
 
-// cron.schedule("0 * * * *", syncGamAutomatically);
+cron.schedule("0 * * * *", syncGamAutomatically);
 
 const PORT = process.env.PORT || 3001;
 
