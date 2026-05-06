@@ -3,7 +3,7 @@ import LinkModal from "../components/LinkModal";
 import EditUrlModal from "../components/EditUrlModal";
 import { calculateProbabilities } from "../utils/probability";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = "https://split2.up.railway.app";
 
 function extractUtmsFromUrl(url) {
   const queryString = (url || "").split("?")[1] || "";

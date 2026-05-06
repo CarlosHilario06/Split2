@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import ProjectCard from "../components/ProjectCard";
 import ProjectModal from "../components/ProjectModal";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = "https://split2.up.railway.app";
 
 export default function Projects({ onManageProject }) {
   const [search, setSearch] = useState("");

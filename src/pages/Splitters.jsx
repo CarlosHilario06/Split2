@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import SplitterCard from "../components/SplitterCard";
 import SplitterModal from "../components/SplitterModal";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = "https://split2.up.railway.app";
 
 export default function Splitters({ project, onBack, onOpenSplitter }) {
   const [search, setSearch] = useState("");
