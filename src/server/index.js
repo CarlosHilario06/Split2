@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import prisma from "./prisma.js";
-import { getGamReportRows } from "./gam/getGamReport.js";
+// import { getGamReportRows } from "./gam/getGamReport.js";
 import cron from "node-cron";
 
 const app = express();
