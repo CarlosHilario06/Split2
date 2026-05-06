@@ -305,7 +305,7 @@ app.put("/api/links/:id", async (req, res) => {
     if (body.type !== undefined) data.type = body.type;
     if (body.utms !== undefined) data.utms = body.utms;
     if (body.disabled !== undefined) data.disabled = Boolean(body.disabled);
-    if (body.tab !== undefined) data.tab = String(body.tab);
+    // if (body.tab !== undefined) data.tab = String(body.tab);
 
     if (body.ecpm !== undefined) data.ecpm = Number(body.ecpm || 0);
 
