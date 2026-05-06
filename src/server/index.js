@@ -381,8 +381,7 @@ app.get("/api/splitters/:splitterId/routes", async (req, res) => {
 app.post("/api/splitters/:splitterId/routes", async (req, res) => {
   try {
     const splitterId = Number(req.params.splitterId);
-    const { domain, slug, tab } = req.body;
-
+    const { domain, slug, tab, pixelId } = req.body;
     if (!domain || !slug) {
       return res.status(400).json({ error: "Domínio e slug são obrigatórios" });
     }
@@ -397,9 +396,10 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
       data: {
         domain: cleanDomain,
         slug: cleanSlug,
+        pixelId: pixelId || null,
         splitterId,
         tab: String(tab || "1"),
-      },
+}
     });
 
     res.json(route);
