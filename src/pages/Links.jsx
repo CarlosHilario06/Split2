@@ -34,6 +34,7 @@ export default function Links({ project, splitter, onBack }) {
   const [routeModalOpen, setRouteModalOpen] = useState(false);
   const [routeDomain, setRouteDomain] = useState("https://bz.topleadz.com");
   const [routeSlug, setRouteSlug] = useState("");
+  const [routePixelId, setRoutePixelId] = useState("");
   const [editingUrl, setEditingUrl] = useState(null);
   const [showZeroOnly, setShowZeroOnly] = useState(false);
 
@@ -182,7 +183,7 @@ export default function Links({ project, splitter, onBack }) {
               ecpm: Number(link.ecpm || 0),
               impressions: Number(link.impressions || 0),
               revenue: Number(link.revenue || 0),
-              tab: String(link.tab || activeTab),
+              tab: String(activeTab),
               splitterId: Number(splitter.id),
             }),
           })
@@ -223,6 +224,7 @@ export default function Links({ project, splitter, onBack }) {
         body: JSON.stringify({
   domain: routeDomain,
   slug: routeSlug,
+  pixelId: routePixelId,
   tab: String(activeTab),
 }),
       });
@@ -233,6 +235,7 @@ export default function Links({ project, splitter, onBack }) {
 
       setRoutes((prev) => [created, ...prev]);
       setRouteSlug("");
+      setRoutePixelId("");
       setRouteModalOpen(false);
     } catch (err) {
       console.error("Erro ao criar rota:", err);
@@ -599,6 +602,13 @@ export default function Links({ project, splitter, onBack }) {
               value={routeSlug}
               onChange={(e) => setRouteSlug(e.target.value)}
               placeholder="paskola"
+            />
+
+            <label>Pixel ID</label>
+            <input
+              value={routePixelId}
+              onChange={(e) => setRoutePixelId(e.target.value)}
+              placeholder="1006617537466411"
             />
 
             <p style={{ color: "#888", marginTop: "8px" }}>
