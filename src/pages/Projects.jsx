@@ -102,7 +102,7 @@ export default function Projects({ onManageProject }) {
     <>
       <section className="page-header">
         <div>
-          <h1>OPERAÇÂO</h1>
+          <h1>OPERAÇÃO</h1>
           <p>Aqui você poderá visualizar e editar suas operações.</p>
         </div>
 
