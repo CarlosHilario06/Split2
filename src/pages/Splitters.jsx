@@ -13,7 +13,7 @@ export default function Splitters({ project, onBack, onOpenSplitter }) {
     if (!project?.id) return;
 
     try {
-      const res = await fetch(`${API_URL}/projects/${project.id}/splitters`);
+      const res = await fetch(`${API_URL}/api/projects/${project.id}/splitters`);
       const data = await res.json();
       setSplitters(data);
     } catch (err) {
@@ -34,7 +34,7 @@ export default function Splitters({ project, onBack, onOpenSplitter }) {
 
   async function handleCreateSplitter(newSplitter) {
     try {
-      const res = await fetch(`${API_URL}/projects/${project.id}/splitters`, {
+      const res = await fetch(`${API_URL}/api/projects/${project.id}/splitters`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export default function Splitters({ project, onBack, onOpenSplitter }) {
     if (!confirmDelete) return;
 
     try {
-      await fetch(`${API_URL}/splitters/${id}`, {
+      await fetch(`${API_URL}/api/splitters/${id}`, {
         method: "DELETE",
       });
 
