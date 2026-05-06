@@ -6,7 +6,12 @@ import cron from "node-cron";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://springow.up.railway.app",
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 function normalize(value) {

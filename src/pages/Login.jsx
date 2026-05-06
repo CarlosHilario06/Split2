@@ -16,7 +16,7 @@ export default function Login({ onLogin }) {
     try {
       setLoading(true);
 
-      const res = await fetch("https://split2.up.railway.app", {
+      const res = await fetch("https://split2.up.railway.app/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
