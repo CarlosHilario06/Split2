@@ -32,7 +32,7 @@ export default function Links({ project, splitter, onBack }) {
   const [routes, setRoutes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [routeModalOpen, setRouteModalOpen] = useState(false);
-  const [routeDomain, setRouteDomain] = useState("https://bz.topleadz.com");
+  const [routeDomain, setRouteDomain] = useState("https://split2.up.railway.app/go");
   const [routeSlug, setRouteSlug] = useState("");
   const [routePixelId, setRoutePixelId] = useState("");
   const [editingUrl, setEditingUrl] = useState(null);
@@ -594,7 +594,7 @@ export default function Links({ project, splitter, onBack }) {
             <input
               value={routeDomain}
               onChange={(e) => setRouteDomain(e.target.value)}
-              placeholder="https://bz.topleadz.com"
+              placeholder="https://split2.up.railway.app/go"
             />
 
             <label>Slug</label>
