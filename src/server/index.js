@@ -1,0 +1,745 @@
+import express from "express";
+import cors from "cors";
+import prisma from "./prisma.js";
+import { getGamReportRows } from "./gam/getGamReport.js";
+import cron from "node-cron";
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+async function optimizeTrafficProbabilities() {
+  const links = await prisma.link.findMany({
+    where: { disabled: false },
+  });
+
+  const groups = {};
+
+  for (const link of links) {
+    const key = `${link.splitterId}-${link.tab}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(link);
+  }
+
+  for (const key in groups) {
+    const group = groups[key];
+
+    const totalEcpm = group.reduce((sum, link) => {
+      return sum + Number(link.ecpm || 0);
+    }, 0);
+
+    for (const link of group) {
+      const probability =
+        totalEcpm > 0
+          ? (Number(link.ecpm || 0) / totalEcpm) * 100
+          : 100 / group.length;
+
+      await prisma.link.update({
+        where: { id: link.id },
+        data: {
+          probability: Number(probability.toFixed(2)),
+        },
+      });
+    }
+  }
+
+  console.log("✅ Probabilidades otimizadas automaticamente");
+}
+
+async function syncGamAutomatically() {
+  try {
+    console.log("⏳ Atualizando dados do GAM...");
+
+    const reportRows = await getGamReportRows();
+    const links = await prisma.link.findMany();
+
+    for (const link of links) {
+      const campaign = link.utms?.utm_campaign;
+
+      const found = reportRows.find((row) => {
+        return (
+          normalize(row.key) === "utm_campaign" &&
+          normalize(row.value) === normalize(campaign)
+        );
+      });
+
+      await prisma.link.update({
+        where: { id: link.id },
+        data: {
+          ecpm: found?.ecpm || 0,
+          impressions: found?.impressions || 0,
+          revenue: found?.revenue || 0,
+        },
+      });
+    }
+
+    await optimizeTrafficProbabilities();
+
+    console.log("✅ GAM atualizado automaticamente");
+  } catch (error) {
+    console.error("❌ Erro ao atualizar GAM automaticamente:", error);
+  }
+}
+
+/* =========================
+   PROJECTS
+========================= */
+
+app.get("/api/projects", async (req, res) => {
+  try {
+    const projects = await prisma.project.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(projects);
+  } catch (error) {
+    console.error("Erro ao buscar projetos:", error);
+    res.status(500).json({ error: "Erro ao buscar projetos" });
+  }
+});
+
+app.post("/api/projects", async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Nome do projeto é obrigatório" });
+    }
+
+    const project = await prisma.project.create({
+      data: { name: name.trim() },
+    });
+
+    res.json(project);
+  } catch (error) {
+    console.error("Erro ao criar projeto:", error);
+    res.status(500).json({ error: "Erro ao criar projeto" });
+  }
+});
+
+app.delete("/api/projects/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    await prisma.project.delete({
+      where: { id },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao deletar projeto:", error);
+    res.status(500).json({ error: "Erro ao deletar projeto" });
+  }
+});
+
+app.post("/api/login", (req, res) => {
+  const { user, password } = req.body;
+
+  const ADMIN_USER = process.env.ADMIN_USER || "admin";
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "123456";
+
+  if (user === ADMIN_USER && password === ADMIN_PASSWORD) {
+    return res.json({ success: true });
+  }
+
+  return res.json({ success: false });
+});
+
+/* =========================
+   AD MANAGER REPORT
+========================= */
+
+app.post("/api/admanager/ecpm", async (req, res) => {
+  try {
+    const { links = [] } = req.body;
+    const reportRows = await getGamReportRows();
+
+    const data = links.map((link) => {
+      const linkUtms = link.utms || {};
+      const campaign = linkUtms.utm_campaign;
+
+      const found = reportRows.find((row) => {
+        return (
+          normalize(row.key) === "utm_campaign" &&
+          normalize(row.value) === normalize(campaign)
+        );
+      });
+
+      return {
+        id: link.id,
+        url: link.url,
+        ecpm: found?.ecpm || 0,
+        impressions: found?.impressions || 0,
+        revenue: found?.revenue || 0,
+        matchedKey: found?.key || null,
+        matchedValue: found?.value || null,
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Erro na API:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Erro ao processar relatório.",
+    });
+  }
+});
+
+/* =========================
+   SPLITTERS
+========================= */
+
+app.get("/api/projects/:projectId/splitters", async (req, res) => {
+  try {
+    const projectId = Number(req.params.projectId);
+
+    const splitters = await prisma.splitter.findMany({
+      where: { projectId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(splitters);
+  } catch (error) {
+    console.error("Erro ao buscar splitters:", error);
+    res.status(500).json({ error: "Erro ao buscar splitters" });
+  }
+});
+
+app.post("/api/projects/:projectId/splitters", async (req, res) => {
+  try {
+    const projectId = Number(req.params.projectId);
+    const { category, location } = req.body;
+
+    const splitter = await prisma.splitter.create({
+      data: {
+        category,
+        location,
+        projectId,
+      },
+    });
+
+    res.json(splitter);
+  } catch (error) {
+    console.error("Erro ao criar splitter:", error);
+    res.status(500).json({ error: "Erro ao criar splitter" });
+  }
+});
+
+/* =========================
+   LINKS
+========================= */
+
+app.get("/api/splitters/:splitterId/links", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+    const tab = String(req.query.tab || "1");
+
+    const links = await prisma.link.findMany({
+      where: { splitterId, tab },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(links);
+  } catch (error) {
+    console.error("Erro ao buscar links:", error);
+    res.status(500).json({ error: "Erro ao buscar links" });
+  }
+});
+
+app.post("/api/splitters/:splitterId/links", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+    const { url, type, utms, tab } = req.body;
+
+    const linkTab = String(tab || "1");
+
+    const existingLink = await prisma.link.findFirst({
+      where: {
+        splitterId,
+        tab: linkTab,
+        url,
+      },
+    });
+
+    if (existingLink) {
+      return res.json(existingLink);
+    }
+
+    const link = await prisma.link.create({
+      data: {
+        url,
+        type: type || "Landing Page",
+        utms: utms || {},
+        tab: linkTab,
+        splitterId,
+      },
+    });
+
+    res.json(link);
+  } catch (error) {
+    console.error("Erro ao criar link:", error);
+    res.status(500).json({ error: "Erro ao criar link" });
+  }
+});
+
+app.put("/api/links/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const body = req.body;
+
+    const data = {};
+
+    if (body.url !== undefined) data.url = body.url;
+    if (body.type !== undefined) data.type = body.type;
+    if (body.utms !== undefined) data.utms = body.utms;
+    if (body.disabled !== undefined) data.disabled = Boolean(body.disabled);
+    if (body.tab !== undefined) data.tab = String(body.tab);
+
+    if (body.ecpm !== undefined) data.ecpm = Number(body.ecpm || 0);
+
+    if (body.impressions !== undefined) {
+      data.impressions = Number(body.impressions || 0);
+    }
+
+    if (body.revenue !== undefined) data.revenue = Number(body.revenue || 0);
+
+    const updated = await prisma.link.update({
+      where: { id },
+      data,
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error("Erro ao atualizar link:", error);
+    res.status(500).json({ error: "Erro ao atualizar link" });
+  }
+});
+
+app.delete("/api/links/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    const existingLink = await prisma.link.findUnique({
+      where: { id },
+    });
+
+    if (!existingLink) {
+      return res.json({ success: true, deleted: false });
+    }
+
+    await prisma.link.delete({
+      where: { id },
+    });
+
+    res.json({ success: true, deleted: true });
+  } catch (error) {
+    console.error("Erro ao deletar link:", error);
+    res.status(500).json({ error: "Erro ao deletar link" });
+  }
+});
+
+/* =========================
+   ROUTES
+========================= */
+
+app.get("/api/splitters/:splitterId/routes", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+    const tab = String(req.query.tab || "1");
+
+    const routes = await prisma.splitterRoute.findMany({
+      where: {
+        splitterId,
+        tab,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(routes);
+  } catch (error) {
+    console.error("Erro ao buscar rotas:", error);
+    res.status(500).json({ error: "Erro ao buscar rotas" });
+  }
+});
+
+app.post("/api/splitters/:splitterId/routes", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+    const { domain, slug, tab } = req.body;
+
+    if (!domain || !slug) {
+      return res.status(400).json({ error: "Domínio e slug são obrigatórios" });
+    }
+
+    const cleanDomain = String(domain).trim().replace(/\/+$/, "");
+    const cleanSlug = String(slug)
+      .trim()
+      .replace(/^\/+/, "")
+      .replace(/\/+$/, "");
+
+    const route = await prisma.splitterRoute.create({
+      data: {
+        domain: cleanDomain,
+        slug: cleanSlug,
+        splitterId,
+        tab: String(tab || "1"),
+      },
+    });
+
+    res.json(route);
+  } catch (error) {
+    console.error("Erro ao criar rota:", error);
+    res.status(500).json({ error: "Erro ao criar rota" });
+  }
+});
+
+app.put("/api/routes/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { domain, slug, tab } = req.body;
+
+    const updated = await prisma.splitterRoute.update({
+      where: { id },
+      data: {
+        ...(domain !== undefined && {
+          domain: String(domain).trim().replace(/\/+$/, ""),
+        }),
+        ...(slug !== undefined && {
+          slug: String(slug).trim().replace(/^\/+/, "").replace(/\/+$/, ""),
+        }),
+        ...(tab !== undefined && {
+          tab: String(tab || "1"),
+        }),
+      },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error("Erro ao atualizar rota:", error);
+    res.status(500).json({ error: "Erro ao atualizar rota" });
+  }
+});
+
+app.delete("/api/routes/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    await prisma.splitterRoute.delete({
+      where: { id },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao deletar rota:", error);
+    res.status(500).json({ error: "Erro ao deletar rota" });
+  }
+});
+
+/* =========================
+   DEBUG
+========================= */
+
+app.get("/debug/routes", async (req, res) => {
+  try {
+    const routes = await prisma.splitterRoute.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(routes);
+  } catch (error) {
+    console.error("Erro no debug routes:", error);
+    res.status(500).json({ error: "Erro ao buscar rotas debug" });
+  }
+});
+
+/* =========================
+   REDIRECT
+========================= */
+
+function buildUrlWithUtms(baseUrl, utms = {}) {
+  try {
+    const url = new URL(baseUrl);
+
+    const parsedUtms =
+      typeof utms === "string" ? JSON.parse(utms || "{}") : utms || {};
+
+    for (const [key, value] of Object.entries(parsedUtms)) {
+      if (value !== undefined && value !== null && value !== "") {
+        url.searchParams.set(key, String(value));
+      }
+    }
+
+    return url.toString();
+  } catch (error) {
+    console.error("Erro ao montar URL com UTMs:", error);
+    return baseUrl;
+  }
+}
+
+function pickByProbability(links) {
+  const totalProbability = links.reduce((sum, link) => {
+    return sum + Number(link.probability || 0);
+  }, 0);
+
+  if (totalProbability <= 0) {
+    return links[Math.floor(Math.random() * links.length)];
+  }
+
+  const random = Math.random() * totalProbability;
+  let accumulated = 0;
+
+  for (const link of links) {
+    accumulated += Number(link.probability || 0);
+
+    if (random <= accumulated) {
+      return link;
+    }
+  }
+
+  return links[links.length - 1];
+}
+
+function renderRedirectLoader({ url, pixelId, customHtml }) {
+  const finalUrlJson = JSON.stringify(url);
+
+  if (customHtml && typeof customHtml === "string") {
+    return customHtml
+      .replaceAll("{{URL}}", url)
+      .replaceAll("{{URL_JSON}}", finalUrlJson);
+  }
+
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecionando...</title>
+
+  ${
+    pixelId
+      ? `
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    fbq('init', '${pixelId}');
+    fbq('track', 'PageView');
+  </script>
+  `
+      : ""
+  }
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .box {
+      text-align: center;
+      padding: 24px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid rgba(255,255,255,0.25);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 18px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0 0 8px;
+    }
+
+    p {
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <div class="spinner"></div>
+    <h1>Encontrando a melhor opção...</h1>
+    <p>Aguarde alguns segundos.</p>
+  </div>
+
+  <script>
+    setTimeout(function () {
+      if (typeof fbq === "function") {
+        fbq('track', 'Lead');
+      }
+
+      window.location.href = ${finalUrlJson};
+    }, 1200);
+  </script>
+</body>
+</html>
+`;
+}
+
+app.get("/go/:slug", async (req, res) => {
+  try {
+    const slug = String(req.params.slug || "")
+      .trim()
+      .replace(/^\/+/, "")
+      .replace(/\/+$/, "");
+
+    const host = String(req.hostname || "").trim();
+    const hostHeader = String(req.get("host") || "").trim();
+
+    console.log("DEBUG /go/:slug", {
+      slug,
+      hostname: host,
+      hostHeader,
+    });
+
+    let route = await prisma.splitterRoute.findFirst({
+      where: {
+        slug,
+        OR: [
+          { domain: host },
+          { domain: hostHeader },
+          { domain: `http://${host}` },
+          { domain: `https://${host}` },
+          { domain: `http://${hostHeader}` },
+          { domain: `https://${hostHeader}` },
+        ],
+      },
+      include: {
+        splitter: true,
+      },
+    });
+
+    if (!route) {
+      console.log("⚠️ Rota não encontrada por domínio. Tentando fallback só por slug...");
+
+      route = await prisma.splitterRoute.findFirst({
+        where: { slug },
+        include: {
+          splitter: true,
+        },
+      });
+    }
+
+    if (!route) {
+      console.log("❌ Rota não encontrada:", {
+        slug,
+        hostname: host,
+        hostHeader,
+      });
+
+      return res.status(404).send("Rota não encontrada");
+    }
+
+    console.log("✅ Rota encontrada:", {
+      id: route.id,
+      domain: route.domain,
+      slug: route.slug,
+      splitterId: route.splitterId,
+      tab: route.tab,
+    });
+
+    const links = await prisma.link.findMany({
+      where: {
+        splitterId: route.splitterId,
+        tab: String(route.tab || "1"),
+        disabled: false,
+      },
+    });
+
+    if (!links.length) {
+      return res.status(404).send("Nenhum link ativo encontrado para essa rota");
+    }
+
+    let selectedLink = pickByProbability(links);
+
+    if (!selectedLink) {
+      selectedLink = links[0];
+    }
+
+    if (!selectedLink?.url || !String(selectedLink.url).startsWith("http")) {
+      return res.status(500).send("URL inválida no link selecionado");
+    }
+
+    await prisma.link.update({
+      where: { id: selectedLink.id },
+      data: {
+        impressions: {
+          increment: 1,
+        },
+      },
+    });
+
+    const finalUrl = buildUrlWithUtms(selectedLink.url, selectedLink.utms);
+
+    console.log("UTMs aplicadas:", {
+      original: selectedLink.url,
+      utms: selectedLink.utms,
+      final: finalUrl,
+    });
+
+    console.log("🚀 Redirect:", {
+      slug,
+      domain: route.domain,
+      splitterId: route.splitterId,
+      tab: route.tab,
+      selectedLinkId: selectedLink.id,
+      finalUrl,
+    });
+
+    return res.send(
+      renderRedirectLoader({
+        url: finalUrl,
+        pixelId: process.env.FB_PIXEL_ID || "1006617537466411",
+        customHtml: route.splitter?.loaderHtml,
+      })
+    );
+  } catch (error) {
+    console.error("Erro em /go/:slug:", error);
+    return res.status(500).send("Erro interno no redirecionamento");
+  }
+});
+
+syncGamAutomatically();
+
+cron.schedule("0 * * * *", syncGamAutomatically);
+
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`API rodando na porta ${PORT}`);
+});

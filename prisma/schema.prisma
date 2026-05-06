@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id        Int        @id @default(autoincrement())
+  name      String
+  splitters Splitter[]
+  createdAt DateTime   @default(now())
+}
+
+model Splitter {
+  id        Int      @id @default(autoincrement())
+  category  String
+  location  String?
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  links     Link[]
+  createdAt DateTime @default(now())
+  routes SplitterRoute[]
+}
+
+model Link {
+  id          Int      @id @default(autoincrement())
+  url         String
+  type        String?
+  ecpm        Float    @default(0)
+  impressions Int      @default(0)
+  revenue     Float    @default(0)
+  disabled    Boolean  @default(false)
+  utms        Json?
+  tab         String   @default("1")
+  splitterId  Int
+  splitter    Splitter @relation(fields: [splitterId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  probability Float @default(0)
+}
+
+model SplitterRoute {
+  id         Int      @id @default(autoincrement())
+  domain     String
+  slug       String
+  tab        String   @default("1")
+  splitterId Int
+  splitter   Splitter @relation(fields: [splitterId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([domain, slug])
+}
