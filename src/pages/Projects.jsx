@@ -102,8 +102,8 @@ export default function Projects({ onManageProject }) {
     <>
       <section className="page-header">
         <div>
-          <h1>PROJETOS</h1>
-          <p>Aqui você poderá visualizar e editar seus projetos.</p>
+          <h1>OPERAÇÂO</h1>
+          <p>Aqui você poderá visualizar e editar suas operações.</p>
         </div>
 
         <button className="new-button" onClick={() => setModalOpen(true)}>

@@ -90,8 +90,8 @@ export default function Splitters({ project, onBack, onOpenSplitter }) {
 
       <section className="page-header">
         <div>
-          <h1>SPLITTERS</h1>
-          <p>Aqui você poderá visualizar e editar os splits deste projeto.</p>
+          <h1>PROJETOS</h1>
+          <p>Aqui você poderá visualizar e editar os projetoS.</p>
         </div>
 
         <button className="new-button" onClick={() => setModalOpen(true)}>
