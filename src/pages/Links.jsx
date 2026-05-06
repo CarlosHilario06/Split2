@@ -48,7 +48,7 @@ export default function Links({ project, splitter, onBack }) {
 
     try {
       const res = await fetch(
-        `${API_URL}/splitters/${currentSplitterId}/links?tab=${encodeURIComponent(
+        `${API_URL}/api/splitters/${currentSplitterId}/links?tab=${encodeURIComponent(
           currentTab
         )}`
       );
@@ -84,7 +84,9 @@ export default function Links({ project, splitter, onBack }) {
     if (!splitter?.id) return;
 
     try {
-      const res = await fetch(`${API_URL}/splitters/${splitter.id}/routes?tab=${activeTab}`)
+      const res = await fetch(
+        `${API_URL}/api/splitters/${splitter.id}/routes?tab=${activeTab}`
+      );
 
       if (!res.ok) throw new Error("Erro ao carregar rotas");
 
@@ -129,7 +131,7 @@ export default function Links({ project, splitter, onBack }) {
     if (!links.length) return;
 
     try {
-      const res = await fetch(`${API_URL}/admanager/ecpm`, {
+      const res = await fetch(`${API_URL}/api/admanager/ecpm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -173,7 +175,7 @@ export default function Links({ project, splitter, onBack }) {
 
       await Promise.all(
         updatedLinks.map((link) =>
-          fetch(`${API_URL}/links/${link.id}`, {
+          fetch(`${API_URL}/api/links/${link.id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -190,7 +192,7 @@ export default function Links({ project, splitter, onBack }) {
       );
     } catch (err) {
       console.error("Erro ao buscar eCPM:", err);
-      alert("Erro ao conectar com a API. Verifique se o backend está rodando.");
+      alert("Erro ao conectar com a API.");
     }
   }, [links, activeTab, splitter?.id]);
 
@@ -215,17 +217,20 @@ export default function Links({ project, splitter, onBack }) {
     }
 
     try {
-      const res = await fetch(`${API_URL}/splitters/${splitter.id}/routes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-  domain: routeDomain,
-  slug: routeSlug,
-  tab: String(activeTab),
-}),
-      });
+      const res = await fetch(
+        `${API_URL}/api/splitters/${splitter.id}/routes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            domain: routeDomain,
+            slug: routeSlug,
+            tab: String(activeTab),
+          }),
+        }
+      );
 
       if (!res.ok) throw new Error("Erro ao criar rota");
 
@@ -241,11 +246,14 @@ export default function Links({ project, splitter, onBack }) {
   }
 
   async function handleDeleteRoute(id) {
-    const confirmDelete = window.confirm("Tem certeza que deseja excluir esta rota?");
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja excluir esta rota?"
+    );
+
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`${API_URL}/routes/${id}`, {
+      const res = await fetch(`${API_URL}/api/routes/${id}`, {
         method: "DELETE",
       });
 
@@ -279,19 +287,22 @@ export default function Links({ project, splitter, onBack }) {
     if (!splitter?.id) return;
 
     try {
-      const res = await fetch(`${API_URL}/splitters/${splitter.id}/links`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url: newLink.url,
-          type: newLink.type || "Landing Page",
-          utms: newLink.utms || extractUtmsFromUrl(newLink.url),
-          tab: String(activeTab),
-          splitterId: Number(splitter.id),
-        }),
-      });
+      const res = await fetch(
+        `${API_URL}/api/splitters/${splitter.id}/links`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: newLink.url,
+            type: newLink.type || "Landing Page",
+            utms: newLink.utms || extractUtmsFromUrl(newLink.url),
+            tab: String(activeTab),
+            splitterId: Number(splitter.id),
+          }),
+        }
+      );
 
       if (!res.ok) throw new Error("Erro ao criar link");
 
@@ -319,11 +330,11 @@ export default function Links({ project, splitter, onBack }) {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`${API_URL}/links/${id}`, {
+      const res = await fetch(`${API_URL}/api/links/${id}`, {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Erro ao deletar link no backend");
+      if (!res.ok) throw new Error("Erro ao deletar link");
 
       setLinks((prev) => prev.filter((link) => link.id !== id));
     } catch (err) {
@@ -331,317 +342,4 @@ export default function Links({ project, splitter, onBack }) {
       alert("Erro ao deletar link");
     }
   }
-
-  async function updateLink(id, field, value) {
-    setLinks((prev) =>
-      prev.map((link) => (link.id === id ? { ...link, [field]: value } : link))
-    );
-
-    try {
-      await fetch(`${API_URL}/links/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          [field]: value,
-          tab: String(activeTab),
-          splitterId: Number(splitter.id),
-        }),
-      });
-    } catch (err) {
-      console.error("Erro ao atualizar link:", err);
-    }
-  }
-
-  async function handleSaveEditedUrl(updatedLink) {
-    const cleanUtms = getLinkUtms(updatedLink);
-
-    const payload = {
-      ...updatedLink,
-      utms: cleanUtms,
-      tab: String(updatedLink.tab || activeTab),
-      splitterId: Number(splitter.id),
-    };
-
-    setLinks((prev) =>
-      prev.map((link) => (link.id === payload.id ? payload : link))
-    );
-
-    try {
-      await fetch(`${API_URL}/links/${payload.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url: payload.url,
-          baseUrl: payload.baseUrl,
-          utms: cleanUtms,
-          tab: payload.tab,
-          splitterId: payload.splitterId,
-        }),
-      });
-    } catch (err) {
-      console.error("Erro ao salvar URL:", err);
-      alert("Erro ao salvar URL");
-    }
-
-    setEditingUrl(null);
-  }
-
-  async function toggleLinkStatus(id) {
-    const current = links.find((link) => link.id === id);
-    if (!current) return;
-
-    const nextDisabled = !current.disabled;
-
-    setLinks((prev) =>
-      prev.map((link) =>
-        link.id === id ? { ...link, disabled: nextDisabled } : link
-      )
-    );
-
-    try {
-      await fetch(`${API_URL}/links/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          disabled: nextDisabled,
-          tab: String(activeTab),
-          splitterId: Number(splitter.id),
-        }),
-      });
-    } catch (err) {
-      console.error("Erro ao alterar status:", err);
-    }
-  }
-
-  function getLinkProb(link) {
-    if (link.disabled) return "0.00";
-
-    const found = computedLinks.find((item) => item.id === link.id);
-
-    return found ? (found.prob * 100).toFixed(2) : "0.00";
-  }
-
-  return (
-    <>
-      <div className="links-toolbar">
-        <button className="back-button" onClick={onBack}>
-          « Voltar
-        </button>
-
-        <div className="status-dot"></div>
-
-        <input
-          className="split-name-input"
-          value={splitter?.category || ""}
-          readOnly
-        />
-
-        <button
-          className={`tab-button ${activeTab === "1" ? "active" : ""}`}
-          onClick={() => changeTab("1")}
-        >
-          1
-        </button>
-
-        <button
-          className={`tab-button ${activeTab === "2" ? "active" : ""}`}
-          onClick={() => changeTab("2")}
-        >
-          2
-        </button>
-
-        <div className="toolbar-spacer"></div>
-
-        <div className="toolbar-pill">${totalEcpm.toFixed(2)}</div>
-        <div className="toolbar-pill strong-pill">eCPM</div>
-
-        <button
-          className={`eye-button ${showZeroOnly ? "active" : ""}`}
-          onClick={() => setShowZeroOnly(!showZeroOnly)}
-          title="Mostrar apenas links desativados"
-        >
-          👁
-        </button>
-
-      </div>
-
-      <section className="page-header">
-        <div>
-          <h1>GERENCIAR LINKS</h1>
-          <p>
-            Adicione e configure URL e Tipo dos seus links para a rota de
-            redirecionamento.
-          </p>
-        </div>
-
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button className="new-button" onClick={() => setRouteModalOpen(true)}>
-            Adicionar rota
-          </button>
-
-          <button className="new-button" onClick={() => setModalOpen(true)}>
-            Novo +
-          </button>
-        </div>
-      </section>
-
-      <section style={{ marginBottom: "18px" }}>
-        <h3 style={{ marginBottom: "10px" }}>Rotas do split</h3>
-
-        {routes.length === 0 && (
-          <p style={{ color: "#888" }}>Nenhuma rota cadastrada.</p>
-        )}
-
-        {routes.map((route) => (
-          <div
-            key={route.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginBottom: "8px",
-              padding: "10px",
-              border: "1px solid #222",
-              borderRadius: "8px",
-            }}
-          >
-            <span style={{ flex: 1 }}>{getRouteUrl(route)}</span>
-
-            <button className="mini-button" onClick={() => copyRoute(route)}>
-              Copiar
-            </button>
-
-            <button
-              className="mini-button"
-              onClick={() => handleDeleteRoute(route.id)}
-            >
-              🗑
-            </button>
-          </div>
-        ))}
-      </section>
-
-      <div className="links-table">
-        <div className="links-row links-header">
-          <span>eCPM (USD)</span>
-          <span>URL</span>
-          <span>Imp.</span>
-          <span>Prob.</span>
-          <span>Tipo</span>
-          <span>Ações</span>
-        </div>
-
-        {visibleLinks.length === 0 && (
-          <p style={{ color: "#888", padding: "18px" }}>
-            {showZeroOnly ? "Nenhum link desativado." : "Nenhum link adicionado."}
-          </p>
-        )}
-
-        {visibleLinks.map((link) => (
-          <div
-            className={`links-row ${link.disabled ? "disabled-row" : ""}`}
-            key={`${splitter?.id}-${activeTab}-${link.id}`}
-          >
-            <input value={`$${Number(link.ecpm || 0).toFixed(2)}`} readOnly />
-
-            <div className="url-cell">
-              <span>{link.url}</span>
-              <button onClick={() => setEditingUrl(link)}>✎</button>
-            </div>
-
-            <input
-              value={Number(link.impressions || 0).toLocaleString("pt-BR")}
-              readOnly
-            />
-
-            <input value={`${getLinkProb(link)}%`} readOnly />
-
-            <select
-              value={link.type || "Landing Page"}
-              onChange={(e) => updateLink(link.id, "type", e.target.value)}
-            >
-              <option>Landing Page</option>
-              <option>Artigo</option>
-              <option>Art De Lista</option>
-              <option>Art Especifico</option>
-            </select>
-
-            <div className="link-actions">
-              <button onClick={() => handleDeleteLink(link.id)}>🗑</button>
-              <button onClick={() => toggleLinkStatus(link.id)}>
-                {link.disabled ? "🙈" : "👁"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {routeModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Adicionar rota</h2>
-
-            <label>Domínio</label>
-            <input
-              value={routeDomain}
-              onChange={(e) => setRouteDomain(e.target.value)}
-              placeholder="https://bz.topleadz.com"
-            />
-
-            <label>Slug</label>
-            <input
-              value={routeSlug}
-              onChange={(e) => setRouteSlug(e.target.value)}
-              placeholder="paskola"
-            />
-
-            <p style={{ color: "#888", marginTop: "8px" }}>
-              URL final:{" "}
-              {routeDomain && routeSlug
-                ? `${routeDomain.replace(/\/+$/, "")}/${routeSlug.replace(
-                    /^\/+/,
-                    ""
-                  )}`
-                : "-"}
-            </p>
-
-            <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
-              <button className="new-button" onClick={handleCreateRoute}>
-                Salvar rota
-              </button>
-
-              <button
-                className="mini-button"
-                onClick={() => setRouteModalOpen(false)}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {modalOpen && (
-        <LinkModal
-          onClose={() => setModalOpen(false)}
-          onSave={handleCreateLink}
-        />
-      )}
-
-      {editingUrl && (
-        <EditUrlModal
-          link={editingUrl}
-          project={project}
-          onClose={() => setEditingUrl(null)}
-          onSave={handleSaveEditedUrl}
-        />
-      )}
-    </>
-  );
 }
