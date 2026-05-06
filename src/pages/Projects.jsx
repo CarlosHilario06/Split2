@@ -12,7 +12,7 @@ export default function Projects({ onManageProject }) {
 
   async function loadProjects() {
     try {
-      const res = await fetch(`${API_URL}/projects`);
+      const res = await fetch(`${API_URL}/api/projects`);
       const data = await res.json();
       setProjects(data);
     } catch (err) {
@@ -43,7 +43,7 @@ export default function Projects({ onManageProject }) {
 
         setEditingProject(null);
       } else {
-        const res = await fetch(`${API_URL}/projects`, {
+        const res = await fetch(`${API_URL}/api/projects`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -73,7 +73,7 @@ export default function Projects({ onManageProject }) {
     if (!confirmDelete) return;
 
     try {
-      await fetch(`${API_URL}/projects/${id}`, {
+      await fetch(`${API_URL}/api/projects/${id}`, {
         method: "DELETE",
       });
 
