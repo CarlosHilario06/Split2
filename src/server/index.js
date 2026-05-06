@@ -598,8 +598,8 @@ function renderRedirectLoader({ url, pixelId, customHtml }) {
 <body>
   <div class="box">
     <div class="spinner"></div>
-    <h1>Encontrando a melhor opção...</h1>
-    <p>Aguarde alguns segundos.</p>
+    <h1>Ieškant geriausio sprendimo...</h1>
+    <p>Palaukite keletą sekundžių.</p>
   </div>
 
   <script>
