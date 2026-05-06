@@ -66,7 +66,6 @@ export default function Links({ project, splitter, onBack }) {
         }))
         .filter((link) => {
           const sameTab = String(link.tab) === currentTab;
-
           const sameSplitter =
             Number(link.splitterId) === currentSplitterId ||
             Number(link.splitter?.id) === currentSplitterId;
@@ -193,7 +192,7 @@ export default function Links({ project, splitter, onBack }) {
       );
     } catch (err) {
       console.error("Erro ao buscar eCPM:", err);
-      alert("Erro ao conectar com a API.");
+      alert("Erro ao conectar com a API. Verifique se o backend está rodando.");
     }
   }, [links, activeTab, splitter?.id]);
 
@@ -250,7 +249,6 @@ export default function Links({ project, splitter, onBack }) {
     const confirmDelete = window.confirm(
       "Tem certeza que deseja excluir esta rota?"
     );
-
     if (!confirmDelete) return;
 
     try {
@@ -264,23 +262,6 @@ export default function Links({ project, splitter, onBack }) {
     } catch (err) {
       console.error("Erro ao deletar rota:", err);
       alert("Erro ao deletar rota");
-    }
-  }
-
-  function getRouteUrl(route) {
-    return `${String(route.domain).replace(/\/+$/, "")}/${String(
-      route.slug
-    ).replace(/^\/+/, "")}`;
-  }
-
-  async function copyRoute(route) {
-    const url = getRouteUrl(route);
-
-    try {
-      await navigator.clipboard.writeText(url);
-      alert("Rota copiada!");
-    } catch {
-      alert(url);
     }
   }
 
@@ -322,212 +303,4 @@ export default function Links({ project, splitter, onBack }) {
       alert("Erro ao criar link");
     }
   }
-
-  async function handleDeleteLink(id) {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja excluir este link?"
-    );
-
-    if (!confirmDelete) return;
-
-    try {
-      const res = await fetch(`${API_URL}/api/links/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) throw new Error("Erro ao deletar link");
-
-      setLinks((prev) => prev.filter((link) => link.id !== id));
-    } catch (err) {
-      console.error("Erro ao deletar link:", err);
-      alert("Erro ao deletar link");
-    }
-  }
-
-  return (
-    <>
-      <div className="splitters-top">
-        <button className="back-button" onClick={onBack}>
-          ← Voltar
-        </button>
-
-        <strong className="project-name-label">
-          {project?.name} / {splitter?.category}
-        </strong>
-      </div>
-
-      <section className="page-header">
-        <div>
-          <h1>LINKS</h1>
-          <p>Gerencie os links e rotas deste split.</p>
-        </div>
-
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            className="new-button"
-            onClick={() => setRouteModalOpen(true)}
-          >
-            Nova Rota
-          </button>
-
-          <button className="new-button" onClick={() => setModalOpen(true)}>
-            Novo Link
-          </button>
-        </div>
-      </section>
-
-      <div className="tabs-container">
-        {["1", "2", "3", "4"].map((tab) => (
-          <button
-            key={tab}
-            className={activeTab === tab ? "tab active" : "tab"}
-            onClick={() => changeTab(tab)}
-          >
-            TAB {tab}
-          </button>
-        ))}
-      </div>
-
-      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
-        <strong>eCPM Total:</strong> ${totalEcpm.toFixed(2)}
-      </div>
-
-      <button
-        className="new-button"
-        onClick={() => setShowZeroOnly((prev) => !prev)}
-      >
-        {showZeroOnly ? "Mostrar Todos" : "Mostrar Zerados"}
-      </button>
-
-      <section className="projects-grid" style={{ marginTop: "20px" }}>
-        {visibleLinks.map((link) => {
-          const calculated = computedLinks.find((l) => l.id === link.id);
-
-          return (
-            <div className="project-card" key={link.id}>
-              <p>
-                <strong>URL:</strong> {link.url}
-              </p>
-
-              <p>
-                <strong>eCPM:</strong> ${Number(link.ecpm || 0).toFixed(2)}
-              </p>
-
-              <p>
-                <strong>Revenue:</strong> $
-                {Number(link.revenue || 0).toFixed(2)}
-              </p>
-
-              <p>
-                <strong>Impressions:</strong>{" "}
-                {Number(link.impressions || 0)}
-              </p>
-
-              <p>
-                <strong>Probabilidade:</strong>{" "}
-                {calculated
-                  ? `${(calculated.probability * 100).toFixed(2)}%`
-                  : "0%"}
-              </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  marginTop: "15px",
-                }}
-              >
-                <button onClick={() => setEditingUrl(link)}>
-                  Editar
-                </button>
-
-                <button onClick={() => handleDeleteLink(link.id)}>
-                  Excluir
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </section>
-
-      <section style={{ marginTop: "40px" }}>
-        <h2>Rotas</h2>
-
-        {routes.map((route) => (
-          <div key={route.id} className="project-card">
-            <p>{getRouteUrl(route)}</p>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                marginTop: "10px",
-              }}
-            >
-              <button onClick={() => copyRoute(route)}>
-                Copiar
-              </button>
-
-              <button onClick={() => handleDeleteRoute(route.id)}>
-                Excluir
-              </button>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {modalOpen && (
-        <LinkModal
-          onClose={() => setModalOpen(false)}
-          onSave={handleCreateLink}
-        />
-      )}
-
-      {editingUrl && (
-        <EditUrlModal
-          link={editingUrl}
-          onClose={() => setEditingUrl(null)}
-          onSave={(updated) => {
-            setLinks((prev) =>
-              prev.map((link) =>
-                link.id === updated.id ? updated : link
-              )
-            );
-
-            setEditingUrl(null);
-          }}
-        />
-      )}
-
-      {routeModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Nova Rota</h2>
-
-            <input
-              placeholder="Domínio"
-              value={routeDomain}
-              onChange={(e) => setRouteDomain(e.target.value)}
-            />
-
-            <input
-              placeholder="Slug"
-              value={routeSlug}
-              onChange={(e) => setRouteSlug(e.target.value)}
-            />
-
-            <div className="modal-actions">
-              <button onClick={handleCreateRoute}>
-                Salvar
-              </button>
-
-              <button onClick={() => setRouteModalOpen(false)}>
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
 }
