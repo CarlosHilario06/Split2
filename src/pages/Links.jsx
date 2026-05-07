@@ -27,9 +27,10 @@ function getLinkUtms(link) {
 }
 
 export default function Links({ project, splitter, onBack }) {
-  const [activeTab, setActiveTab] = useState("1");
-  const [links, setLinks] = useState([]);
-  const [routes, setRoutes] = useState([]);
+  const [activeTab, setActiveTab] = useState(null);
+  const [createdTabs, setCreatedTabs] = useState([]);
+  const [allLinks, setAllLinks] = useState([]);
+  const [allRoutes, setAllRoutes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [routeModalOpen, setRouteModalOpen] = useState(false);
   const [routeDomain, setRouteDomain] = useState("https://split2.up.railway.app/go");
@@ -41,19 +42,32 @@ export default function Links({ project, splitter, onBack }) {
 
   const loadRequestRef = useRef(0);
 
-  async function loadLinks(tab = activeTab) {
+  const splitTabs = Array.from(
+    new Set([
+      ...createdTabs.map(String),
+      ...allLinks.map((link) => String(link.tab || "1")),
+      ...allRoutes.map((route) => String(route.tab || "1")),
+    ])
+  ).sort((a, b) => Number(a) - Number(b));
+
+  const hasConfiguredSplits = splitTabs.length > 0;
+
+  const links = activeTab
+    ? allLinks.filter((link) => String(link.tab || "1") === String(activeTab))
+    : [];
+
+  const routes = activeTab
+    ? allRoutes.filter((route) => String(route.tab || "1") === String(activeTab))
+    : [];
+
+  async function loadLinks() {
     if (!splitter?.id) return;
 
     const currentSplitterId = Number(splitter.id);
-    const currentTab = String(tab);
     const requestId = ++loadRequestRef.current;
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/splitters/${currentSplitterId}/links?tab=${encodeURIComponent(
-          currentTab
-        )}`
-      );
+      const res = await fetch(`${API_URL}/api/splitters/${currentSplitterId}/links`);
 
       if (!res.ok) throw new Error("Erro ao carregar links");
 
@@ -64,18 +78,17 @@ export default function Links({ project, splitter, onBack }) {
       const safeLinks = data
         .map((link) => ({
           ...link,
-          tab: String(link.tab || currentTab),
+          tab: String(link.tab || "1"),
         }))
         .filter((link) => {
-          const sameTab = String(link.tab) === currentTab;
           const sameSplitter =
             Number(link.splitterId) === currentSplitterId ||
             Number(link.splitter?.id) === currentSplitterId;
 
-          return sameTab && sameSplitter;
+          return sameSplitter;
         });
 
-      setLinks(safeLinks);
+      setAllLinks(safeLinks);
     } catch (err) {
       console.error("Erro ao carregar links:", err);
       alert("Erro ao carregar links");
@@ -86,14 +99,18 @@ export default function Links({ project, splitter, onBack }) {
     if (!splitter?.id) return;
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/splitters/${splitter.id}/routes?tab=${activeTab}`
-      );
+      const res = await fetch(`${API_URL}/api/splitters/${splitter.id}/routes`);
 
       if (!res.ok) throw new Error("Erro ao carregar rotas");
 
       const data = await res.json();
-      setRoutes(data);
+
+      setAllRoutes(
+        data.map((route) => ({
+          ...route,
+          tab: String(route.tab || "1"),
+        }))
+      );
     } catch (err) {
       console.error("Erro ao carregar rotas:", err);
       alert("Erro ao carregar rotas");
@@ -101,18 +118,39 @@ export default function Links({ project, splitter, onBack }) {
   }
 
   useEffect(() => {
-    setLinks([]);
-    loadLinks(activeTab);
+    setAllLinks([]);
+    setAllRoutes([]);
+    setCreatedTabs([]);
+    setActiveTab(null);
+    loadLinks();
     loadRoutes();
-  }, [splitter?.id, activeTab]);
+  }, [splitter?.id]);
+
+  useEffect(() => {
+    if (!activeTab && splitTabs.length > 0) {
+      setActiveTab(splitTabs[0]);
+    }
+  }, [splitTabs, activeTab]);
 
   function changeTab(tab) {
     if (tab === activeTab) return;
 
     setShowZeroOnly(false);
     setEditingUrl(null);
-    setLinks([]);
-    setActiveTab(tab);
+    setActiveTab(String(tab));
+  }
+
+  function handleCreateSplitTab() {
+    const nextTab =
+      splitTabs.length > 0
+        ? String(Math.max(...splitTabs.map(Number)) + 1)
+        : "1";
+
+    setCreatedTabs((prev) =>
+      prev.includes(nextTab) ? prev : [...prev, nextTab]
+    );
+
+    setActiveTab(nextTab);
   }
 
   const activeLinks = links.filter((link) => !link.disabled);
@@ -130,7 +168,7 @@ export default function Links({ project, splitter, onBack }) {
   });
 
   const fetchEcpmFromAPI = useCallback(async () => {
-    if (!links.length) return;
+    if (!links.length || !activeTab) return;
 
     try {
       const res = await fetch(`${API_URL}/api/admanager/ecpm`, {
@@ -173,7 +211,12 @@ export default function Links({ project, splitter, onBack }) {
           : link;
       });
 
-      setLinks(updatedLinks);
+      setAllLinks((prev) =>
+        prev.map((link) => {
+          const updated = updatedLinks.find((item) => item.id === link.id);
+          return updated || link;
+        })
+      );
 
       await Promise.all(
         updatedLinks.map((link) =>
@@ -211,7 +254,7 @@ export default function Links({ project, splitter, onBack }) {
     : links;
 
   async function handleCreateRoute() {
-    if (!splitter?.id) return;
+    if (!splitter?.id || !activeTab) return;
 
     if (!routeDomain.trim() || !routeSlug.trim()) {
       alert("Preencha domínio e slug.");
@@ -236,7 +279,15 @@ export default function Links({ project, splitter, onBack }) {
 
       const created = await res.json();
 
-      setRoutes((prev) => [created, ...prev]);
+      setAllRoutes((prev) => [
+        {
+          ...created,
+          tab: String(created.tab || activeTab),
+        },
+        ...prev,
+      ]);
+
+      setCreatedTabs((prev) => prev.filter((tab) => tab !== String(activeTab)));
       setRouteSlug("");
       setRoutePixelId("");
       setRouteModalOpen(false);
@@ -247,7 +298,7 @@ export default function Links({ project, splitter, onBack }) {
   }
 
   async function handleUpdateRoute() {
-    if (!editingRoute) return;
+    if (!editingRoute || !activeTab) return;
 
     try {
       const res = await fetch(`${API_URL}/api/routes/${editingRoute.id}`, {
@@ -269,7 +320,7 @@ export default function Links({ project, splitter, onBack }) {
 
       const updated = await res.json();
 
-      setRoutes((prev) =>
+      setAllRoutes((prev) =>
         prev.map((route) => (route.id === updated.id ? updated : route))
       );
 
@@ -294,7 +345,7 @@ export default function Links({ project, splitter, onBack }) {
 
       if (!res.ok) throw new Error("Erro ao deletar rota");
 
-      setRoutes((prev) => prev.filter((route) => route.id !== id));
+      setAllRoutes((prev) => prev.filter((route) => route.id !== id));
     } catch (err) {
       console.error("Erro ao deletar rota:", err);
       alert("Erro ao deletar rota");
@@ -327,7 +378,7 @@ export default function Links({ project, splitter, onBack }) {
   }
 
   async function handleCreateLink(newLink) {
-    if (!splitter?.id) return;
+    if (!splitter?.id || !activeTab) return;
 
     try {
       const res = await fetch(`${API_URL}/api/splitters/${splitter.id}/links`, {
@@ -354,7 +405,8 @@ export default function Links({ project, splitter, onBack }) {
         splitterId: Number(created.splitterId || splitter.id),
       };
 
-      setLinks((prev) => [safeCreated, ...prev]);
+      setAllLinks((prev) => [safeCreated, ...prev]);
+      setCreatedTabs((prev) => prev.filter((tab) => tab !== String(activeTab)));
       setModalOpen(false);
     } catch (err) {
       console.error("Erro ao criar link:", err);
@@ -376,7 +428,7 @@ export default function Links({ project, splitter, onBack }) {
 
       if (!res.ok) throw new Error("Erro ao deletar link no backend");
 
-      setLinks((prev) => prev.filter((link) => link.id !== id));
+      setAllLinks((prev) => prev.filter((link) => link.id !== id));
     } catch (err) {
       console.error("Erro ao deletar link:", err);
       alert("Erro ao deletar link");
@@ -384,7 +436,7 @@ export default function Links({ project, splitter, onBack }) {
   }
 
   async function updateLink(id, field, value) {
-    setLinks((prev) =>
+    setAllLinks((prev) =>
       prev.map((link) => (link.id === id ? { ...link, [field]: value } : link))
     );
 
@@ -415,7 +467,7 @@ export default function Links({ project, splitter, onBack }) {
       splitterId: Number(splitter.id),
     };
 
-    setLinks((prev) =>
+    setAllLinks((prev) =>
       prev.map((link) => (link.id === payload.id ? payload : link))
     );
 
@@ -442,12 +494,12 @@ export default function Links({ project, splitter, onBack }) {
   }
 
   async function toggleLinkStatus(id) {
-    const current = links.find((link) => link.id === id);
+    const current = allLinks.find((link) => link.id === id);
     if (!current) return;
 
     const nextDisabled = !current.disabled;
 
-    setLinks((prev) =>
+    setAllLinks((prev) =>
       prev.map((link) =>
         link.id === id ? { ...link, disabled: nextDisabled } : link
       )
@@ -480,42 +532,44 @@ export default function Links({ project, splitter, onBack }) {
 
   return (
     <>
-      <div className="links-toolbar">
-        <div className="status-dot"></div>
+      {hasConfiguredSplits && (
+        <div className="links-toolbar">
+          <div className="status-dot"></div>
 
-        <input
-          className="split-name-input"
-          value={splitter?.category || ""}
-          readOnly
-        />
+          <input
+            className="split-name-input"
+            value={splitter?.category || ""}
+            readOnly
+          />
 
-        <button
-          className={`tab-button ${activeTab === "1" ? "active" : ""}`}
-          onClick={() => changeTab("1")}
-        >
-          1
-        </button>
+          {splitTabs.map((tab) => (
+            <button
+              key={tab}
+              className={`tab-button ${activeTab === tab ? "active" : ""}`}
+              onClick={() => changeTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
 
-        <button
-          className={`tab-button ${activeTab === "2" ? "active" : ""}`}
-          onClick={() => changeTab("2")}
-        >
-          2
-        </button>
+          <button className="tab-button" onClick={handleCreateSplitTab}>
+            +
+          </button>
 
-        <div className="toolbar-spacer"></div>
+          <div className="toolbar-spacer"></div>
 
-        <div className="toolbar-pill">${totalEcpm.toFixed(2)}</div>
-        <div className="toolbar-pill strong-pill">eCPM</div>
+          <div className="toolbar-pill">${totalEcpm.toFixed(2)}</div>
+          <div className="toolbar-pill strong-pill">eCPM</div>
 
-        <button
-          className={`eye-button ${showZeroOnly ? "active" : ""}`}
-          onClick={() => setShowZeroOnly(!showZeroOnly)}
-          title="Mostrar apenas links desativados"
-        >
-          👁
-        </button>
-      </div>
+          <button
+            className={`eye-button ${showZeroOnly ? "active" : ""}`}
+            onClick={() => setShowZeroOnly(!showZeroOnly)}
+            title="Mostrar apenas links desativados"
+          >
+            👁
+          </button>
+        </div>
+      )}
 
       <section className="page-header">
         <div>
@@ -527,115 +581,131 @@ export default function Links({ project, splitter, onBack }) {
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <button className="new-button" onClick={() => setRouteModalOpen(true)}>
-            Adicionar rota
-          </button>
+          {!hasConfiguredSplits ? (
+            <button className="new-button" onClick={handleCreateSplitTab}>
+              Criar novo split
+            </button>
+          ) : (
+            <>
+              <button className="new-button" onClick={() => setRouteModalOpen(true)}>
+                Adicionar rota
+              </button>
 
-          <button className="new-button" onClick={() => setModalOpen(true)}>
-            Novo +
-          </button>
+              <button className="new-button" onClick={() => setModalOpen(true)}>
+                Novo +
+              </button>
+            </>
+          )}
         </div>
       </section>
 
-      <section style={{ marginBottom: "18px" }}>
-        <h3 style={{ marginBottom: "10px" }}>Rotas do split</h3>
+      {!hasConfiguredSplits ? (
+        <section style={{ marginTop: "28px", color: "#888" }}>
+          Nenhum split configurado.
+        </section>
+      ) : (
+        <>
+          <section style={{ marginBottom: "18px" }}>
+            <h3 style={{ marginBottom: "10px" }}>Rotas do split</h3>
 
-        {routes.length === 0 && (
-          <p style={{ color: "#888" }}>Nenhuma rota cadastrada.</p>
-        )}
+            {routes.length === 0 && (
+              <p style={{ color: "#888" }}>Nenhuma rota cadastrada.</p>
+            )}
 
-        {routes.map((route) => (
-          <div
-            key={route.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginBottom: "8px",
-              padding: "10px",
-              border: "1px solid #222",
-              borderRadius: "8px",
-            }}
-          >
-            <span style={{ flex: 1 }}>{getRouteUrl(route)}</span>
-
-            <div className="route-actions">
-              <button className="route-button" onClick={() => copyRoute(route)}>
-                Copiar
-              </button>
-
-              <button
-                className="route-button"
-                onClick={() => handleEditRoute(route)}
+            {routes.map((route) => (
+              <div
+                key={route.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "8px",
+                  padding: "10px",
+                  border: "1px solid #222",
+                  borderRadius: "8px",
+                }}
               >
-                Editar
-              </button>
+                <span style={{ flex: 1 }}>{getRouteUrl(route)}</span>
 
-              <button
-                className="route-button danger"
-                onClick={() => handleDeleteRoute(route.id)}
+                <div className="route-actions">
+                  <button className="route-button" onClick={() => copyRoute(route)}>
+                    Copiar
+                  </button>
+
+                  <button
+                    className="route-button"
+                    onClick={() => handleEditRoute(route)}
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    className="route-button danger"
+                    onClick={() => handleDeleteRoute(route.id)}
+                  >
+                    🗑
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <div className="links-table">
+            <div className="links-row links-header">
+              <span>eCPM (USD)</span>
+              <span>URL</span>
+              <span>Imp.</span>
+              <span>Prob.</span>
+              <span>Tipo</span>
+              <span>Ações</span>
+            </div>
+
+            {visibleLinks.length === 0 && (
+              <p style={{ color: "#888", padding: "18px" }}>
+                {showZeroOnly ? "Nenhum link desativado." : "Nenhum link adicionado."}
+              </p>
+            )}
+
+            {visibleLinks.map((link) => (
+              <div
+                className={`links-row ${link.disabled ? "disabled-row" : ""}`}
+                key={`${splitter?.id}-${activeTab}-${link.id}`}
               >
-                🗑
-              </button>
-            </div>
+                <input value={`$${Number(link.ecpm || 0).toFixed(2)}`} readOnly />
+
+                <div className="url-cell">
+                  <span>{link.url}</span>
+                  <button onClick={() => setEditingUrl(link)}>✎</button>
+                </div>
+
+                <input
+                  value={Number(link.impressions || 0).toLocaleString("pt-BR")}
+                  readOnly
+                />
+
+                <input value={`${getLinkProb(link)}%`} readOnly />
+
+                <select
+                  value={link.type || "Landing Page"}
+                  onChange={(e) => updateLink(link.id, "type", e.target.value)}
+                >
+                  <option>Landing Page</option>
+                  <option>Artigo</option>
+                  <option>Art De Lista</option>
+                  <option>Art Especifico</option>
+                </select>
+
+                <div className="link-actions">
+                  <button onClick={() => handleDeleteLink(link.id)}>🗑</button>
+                  <button onClick={() => toggleLinkStatus(link.id)}>
+                    {link.disabled ? "🙈" : "👁"}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </section>
-
-      <div className="links-table">
-        <div className="links-row links-header">
-          <span>eCPM (USD)</span>
-          <span>URL</span>
-          <span>Imp.</span>
-          <span>Prob.</span>
-          <span>Tipo</span>
-          <span>Ações</span>
-        </div>
-
-        {visibleLinks.length === 0 && (
-          <p style={{ color: "#888", padding: "18px" }}>
-            {showZeroOnly ? "Nenhum link desativado." : "Nenhum link adicionado."}
-          </p>
-        )}
-
-        {visibleLinks.map((link) => (
-          <div
-            className={`links-row ${link.disabled ? "disabled-row" : ""}`}
-            key={`${splitter?.id}-${activeTab}-${link.id}`}
-          >
-            <input value={`$${Number(link.ecpm || 0).toFixed(2)}`} readOnly />
-
-            <div className="url-cell">
-              <span>{link.url}</span>
-              <button onClick={() => setEditingUrl(link)}>✎</button>
-            </div>
-
-            <input
-              value={Number(link.impressions || 0).toLocaleString("pt-BR")}
-              readOnly
-            />
-
-            <input value={`${getLinkProb(link)}%`} readOnly />
-
-            <select
-              value={link.type || "Landing Page"}
-              onChange={(e) => updateLink(link.id, "type", e.target.value)}
-            >
-              <option>Landing Page</option>
-              <option>Artigo</option>
-              <option>Art De Lista</option>
-              <option>Art Especifico</option>
-            </select>
-
-            <div className="link-actions">
-              <button onClick={() => handleDeleteLink(link.id)}>🗑</button>
-              <button onClick={() => toggleLinkStatus(link.id)}>
-                {link.disabled ? "🙈" : "👁"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+        </>
+      )}
 
       {routeModalOpen && (
         <div className="modal-overlay">

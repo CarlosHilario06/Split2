@@ -244,10 +244,13 @@ app.post("/api/projects/:projectId/splitters", async (req, res) => {
 app.get("/api/splitters/:splitterId/links", async (req, res) => {
   try {
     const splitterId = Number(req.params.splitterId);
-    const tab = String(req.query.tab || "1");
+    const tab = req.query.tab ? String(req.query.tab) : null;
 
     const links = await prisma.link.findMany({
-      where: { splitterId, tab },
+      where: {
+        splitterId,
+        ...(tab && { tab }),
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -305,8 +308,6 @@ app.put("/api/links/:id", async (req, res) => {
     if (body.type !== undefined) data.type = body.type;
     if (body.utms !== undefined) data.utms = body.utms;
     if (body.disabled !== undefined) data.disabled = Boolean(body.disabled);
-    // if (body.tab !== undefined) data.tab = String(body.tab);
-
     if (body.ecpm !== undefined) data.ecpm = Number(body.ecpm || 0);
 
     if (body.impressions !== undefined) {
@@ -361,12 +362,12 @@ app.delete("/api/links/:id", async (req, res) => {
 app.get("/api/splitters/:splitterId/routes", async (req, res) => {
   try {
     const splitterId = Number(req.params.splitterId);
-    const tab = String(req.query.tab || "1");
+    const tab = req.query.tab ? String(req.query.tab) : null;
 
     const routes = await prisma.splitterRoute.findMany({
       where: {
         splitterId,
-        tab,
+        ...(tab && { tab }),
       },
       orderBy: { createdAt: "desc" },
     });
@@ -382,6 +383,7 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
   try {
     const splitterId = Number(req.params.splitterId);
     const { domain, slug, tab, pixelId } = req.body;
+
     if (!domain || !slug) {
       return res.status(400).json({ error: "Domínio e slug são obrigatórios" });
     }
@@ -399,7 +401,7 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
         pixelId: pixelId || null,
         splitterId,
         tab: String(tab || "1"),
-}
+      },
     });
 
     res.json(route);
@@ -412,7 +414,7 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
 app.put("/api/routes/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { domain, slug, tab } = req.body;
+    const { domain, slug, tab, pixelId } = req.body;
 
     const updated = await prisma.splitterRoute.update({
       where: { id },
@@ -425,6 +427,9 @@ app.put("/api/routes/:id", async (req, res) => {
         }),
         ...(tab !== undefined && {
           tab: String(tab || "1"),
+        }),
+        ...(pixelId !== undefined && {
+          pixelId: pixelId || null,
         }),
       },
     });
@@ -731,8 +736,8 @@ app.get("/go/:slug", async (req, res) => {
         url: finalUrl,
         pixelId: route.pixelId || process.env.FB_PIXEL_ID || "1006617537466411",
         customHtml: route.splitter?.loaderHtml,
-  })
-);
+      })
+    );
   } catch (error) {
     console.error("Erro em /go/:slug:", error);
     return res.status(500).send("Erro interno no redirecionamento");
