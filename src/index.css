@@ -1020,3 +1020,41 @@ button:hover {
 .breadcrumb-separator {
   color: #3b82f6;
 }
+
+.global-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 26px;
+  padding-top: 6px;
+
+  font-size: 15px;
+}
+
+.page-header h1 {
+  margin-top: 10px;
+}
+
+.links-toolbar {
+  margin-top: 10px;
+}
+
+.global-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 24px;
+  padding-top: 6px;
+
+  font-size: 15px;
+}
+
+.global-breadcrumb + .links-toolbar {
+  margin-top: 14px;
+}
+
+.page-header {
+  margin-top: 10px;
+}

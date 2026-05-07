@@ -82,8 +82,6 @@ export default function Splitters({ project, onBack, onOpenSplitter }) {
     <>
       <div className="splitters-top">
         
-
-        <strong className="project-name-label">{project?.name}</strong>
       </div>
 
       <section className="page-header">
