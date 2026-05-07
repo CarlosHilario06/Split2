@@ -119,10 +119,12 @@ export default function App() {
 
         {activePage === "links" && (
           <Links
-            project={selectedProject}
-            splitter={selectedSplitter}
-            onBack={backToSplitters}
-            breadcrumb={getBreadcrumb()}
+  project={selectedProject}
+  splitter={selectedSplitter}
+  onBack={backToSplitters}
+  onGoProjects={backToProjects}
+  onGoSplitters={backToSplitters}
+  breadcrumb={getBreadcrumb()}
 />
         )}
       </main>

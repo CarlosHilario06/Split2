@@ -26,8 +26,15 @@ function getLinkUtms(link) {
   };
 }
 
-export default function Links({ project, splitter, onBack, breadcrumb = [] }) {
-  const [activeTab, setActiveTab] = useState("1");
+export default function Links({
+  project,
+  splitter,
+  onBack,
+  onGoProjects,
+  onGoSplitters,
+  breadcrumb = [],
+}) {
+    const [activeTab, setActiveTab] = useState("1");
   const [links, setLinks] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -492,14 +499,27 @@ export default function Links({ project, splitter, onBack, breadcrumb = [] }) {
 </button>
 
 <div className="breadcrumb">
-  {breadcrumb.map((item, index) => (
-    <span key={`${item}-${index}`}>
-      {item}
-      {index < breadcrumb.length - 1 && (
-        <span className="breadcrumb-separator"> › </span>
-      )}
-    </span>
-  ))}
+  <span
+    className="breadcrumb-link"
+    onClick={onGoProjects}
+  >
+    Projetos
+  </span>
+
+  <span className="breadcrumb-separator">›</span>
+
+  <span
+    className="breadcrumb-link"
+    onClick={onGoSplitters}
+  >
+    {project?.name || project?.title || "Projeto"}
+  </span>
+
+  <span className="breadcrumb-separator">›</span>
+
+  <span className="breadcrumb-current">
+    Gerenciar links
+  </span>
 </div>
 
         <div className="status-dot"></div>

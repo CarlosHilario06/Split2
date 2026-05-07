@@ -994,3 +994,29 @@ button:hover {
   color: #3b82f6 !important;
   margin: 0 4px;
 }
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.breadcrumb-link {
+  color: #9db7dd;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.breadcrumb-link:hover {
+  color: #ffffff;
+}
+
+.breadcrumb-current {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: #3b82f6;
+}
