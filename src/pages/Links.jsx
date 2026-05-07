@@ -35,6 +35,7 @@ export default function Links({ project, splitter, onBack }) {
   const [routeDomain, setRouteDomain] = useState("https://split2.up.railway.app/go");
   const [routeSlug, setRouteSlug] = useState("");
   const [routePixelId, setRoutePixelId] = useState("");
+  const [editingRoute, setEditingRoute] = useState(null);
   const [editingUrl, setEditingUrl] = useState(null);
   const [showZeroOnly, setShowZeroOnly] = useState(false);
 
@@ -243,6 +244,49 @@ export default function Links({ project, splitter, onBack }) {
     }
   }
 
+  async function handleUpdateRoute() {
+  if (!editingRoute) return;
+
+  try {
+    const res = await fetch(
+      `${API_URL}/api/routes/${editingRoute.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          domain: routeDomain,
+          slug: routeSlug,
+          pixelId: routePixelId,
+          tab: String(activeTab),
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Erro ao atualizar rota");
+    }
+
+    const updated = await res.json();
+
+    setRoutes((prev) =>
+      prev.map((route) =>
+        route.id === updated.id ? updated : route
+      )
+    );
+
+    setEditingRoute(null);
+    setRouteModalOpen(false);
+
+    setRouteSlug("");
+    setRoutePixelId("");
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao atualizar rota");
+  }
+}
+
   async function handleDeleteRoute(id) {
     const confirmDelete = window.confirm("Tem certeza que deseja excluir esta rota?");
     if (!confirmDelete) return;
@@ -260,6 +304,16 @@ export default function Links({ project, splitter, onBack }) {
       alert("Erro ao deletar rota");
     }
   }
+
+  function handleEditRoute(route) {
+  setEditingRoute(route);
+
+  setRouteDomain(route.domain || "");
+  setRouteSlug(route.slug || "");
+  setRoutePixelId(route.pixelId || "");
+
+  setRouteModalOpen(true);
+}
 
   function getRouteUrl(route) {
     return `${String(route.domain).replace(/\/+$/, "")}/${String(
@@ -495,40 +549,44 @@ export default function Links({ project, splitter, onBack }) {
       </section>
 
       <section style={{ marginBottom: "18px" }}>
-        <h3 style={{ marginBottom: "10px" }}>Rotas do split</h3>
+  <h3 style={{ marginBottom: "10px" }}>Rotas do split</h3>
 
-        {routes.length === 0 && (
-          <p style={{ color: "#888" }}>Nenhuma rota cadastrada.</p>
-        )}
+  {routes.length === 0 && (
+    <p style={{ color: "#888" }}>Nenhuma rota cadastrada.</p>
+  )}
 
-        {routes.map((route) => (
-          <div
-            key={route.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginBottom: "8px",
-              padding: "10px",
-              border: "1px solid #222",
-              borderRadius: "8px",
-            }}
-          >
-            <span style={{ flex: 1 }}>{getRouteUrl(route)}</span>
+  {routes.map((route) => (
+    <div
+      key={route.id}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        marginBottom: "8px",
+        padding: "10px",
+        border: "1px solid #222",
+        borderRadius: "8px",
+      }}
+    >
+      <span style={{ flex: 1 }}>
+        {getRouteUrl(route)}
+      </span>
 
-            <button className="mini-button" onClick={() => copyRoute(route)}>
-              Copiar
-            </button>
+      <div className="route-actions">
+        <button onClick={() => copyRoute(route.slug)}>
+          Copiar
+        </button>
 
-            <button
-              className="mini-button"
-              onClick={() => handleDeleteRoute(route.id)}
-            >
-              🗑
-            </button>
-          </div>
-        ))}
-      </section>
+        <button onClick={() => handleEditRoute(route)}>
+          Editar
+        </button>
+
+<button onClick={() => handleDeleteRoute(route.id)}>          🗑
+        </button>
+      </div>
+    </div>
+  ))}
+</section>
 
       <div className="links-table">
         <div className="links-row links-header">
@@ -622,7 +680,12 @@ export default function Links({ project, splitter, onBack }) {
             </p>
 
             <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
-              <button className="new-button" onClick={handleCreateRoute}>
+              <button className="new-button" onClick={ 
+                                             editingRoute
+                                               ? handleUpdateRoute
+                                              : handleCreateRoute
+                                            }
+              >
                 Salvar rota
               </button>
 
