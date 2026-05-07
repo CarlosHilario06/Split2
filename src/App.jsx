@@ -58,38 +58,12 @@ export default function App() {
     setActivePage(previousPage);
   }
 
-  function getBreadcrumb() {
-  if (activePage === "projects") {
-    return ["Projetos"];
-  }
-
-  if (activePage === "splitters") {
-    return ["Projetos", selectedProject?.name || "Projeto"];
-  }
-
-  if (activePage === "links") {
-    return [
-      "Projetos",
-      selectedProject?.name || "Projeto",
-      "Gerenciar links",
-    ];
-  }
-
-  if (activePage === "utms") {
-    return ["UTMs"];
-  }
-
-  return [];
-}
-
-  // 🔒 Tela de login
   if (!isLogged) {
     return <Login onLogin={handleLogin} />;
   }
 
   return (
     <div className="app">
-      {/* ✅ Sidebar única */}
       <Sidebar
         activePage={activePage}
         setActivePage={setActivePage}
@@ -99,6 +73,50 @@ export default function App() {
       />
 
       <main className="main">
+        <div className="global-breadcrumb">
+          <span className="breadcrumb-link" onClick={backToProjects}>
+            Projetos
+          </span>
+
+          {selectedProject && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+
+              <span
+                className={
+                  activePage === "splitters"
+                    ? "breadcrumb-current"
+                    : "breadcrumb-link"
+                }
+                onClick={backToSplitters}
+              >
+                {selectedProject?.name || selectedProject?.title || "Projeto"}
+              </span>
+            </>
+          )}
+
+          {activePage === "links" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">Gerenciar links</span>
+            </>
+          )}
+
+          {activePage === "utms" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">UTMs</span>
+            </>
+          )}
+
+          {activePage === "settings" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">Configurações</span>
+            </>
+          )}
+        </div>
+
         {activePage === "utms" && (
           <Utms project={selectedProject} onBack={backFromUtms} />
         )}
@@ -119,13 +137,10 @@ export default function App() {
 
         {activePage === "links" && (
           <Links
-  project={selectedProject}
-  splitter={selectedSplitter}
-  onBack={backToSplitters}
-  onGoProjects={backToProjects}
-  onGoSplitters={backToSplitters}
-  breadcrumb={getBreadcrumb()}
-/>
+            project={selectedProject}
+            splitter={selectedSplitter}
+            onBack={backToSplitters}
+          />
         )}
       </main>
     </div>

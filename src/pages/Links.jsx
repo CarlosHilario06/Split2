@@ -26,15 +26,8 @@ function getLinkUtms(link) {
   };
 }
 
-export default function Links({
-  project,
-  splitter,
-  onBack,
-  onGoProjects,
-  onGoSplitters,
-  breadcrumb = [],
-}) {
-    const [activeTab, setActiveTab] = useState("1");
+export default function Links({ project, splitter, onBack }) {
+  const [activeTab, setActiveTab] = useState("1");
   const [links, setLinks] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -93,7 +86,9 @@ export default function Links({
     if (!splitter?.id) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/splitters/${splitter.id}/routes?tab=${activeTab}`);
+      const res = await fetch(
+        `${API_URL}/api/splitters/${splitter.id}/routes?tab=${activeTab}`
+      );
 
       if (!res.ok) throw new Error("Erro ao carregar rotas");
 
@@ -230,11 +225,11 @@ export default function Links({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-  domain: routeDomain,
-  slug: routeSlug,
-  pixelId: routePixelId,
-  tab: String(activeTab),
-}),
+          domain: routeDomain,
+          slug: routeSlug,
+          pixelId: routePixelId,
+          tab: String(activeTab),
+        }),
       });
 
       if (!res.ok) throw new Error("Erro ao criar rota");
@@ -252,12 +247,10 @@ export default function Links({
   }
 
   async function handleUpdateRoute() {
-  if (!editingRoute) return;
+    if (!editingRoute) return;
 
-  try {
-    const res = await fetch(
-      `${API_URL}/api/routes/${editingRoute.id}`,
-      {
+    try {
+      const res = await fetch(`${API_URL}/api/routes/${editingRoute.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -268,31 +261,27 @@ export default function Links({
           pixelId: routePixelId,
           tab: String(activeTab),
         }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Erro ao atualizar rota");
       }
-    );
 
-    if (!res.ok) {
-      throw new Error("Erro ao atualizar rota");
+      const updated = await res.json();
+
+      setRoutes((prev) =>
+        prev.map((route) => (route.id === updated.id ? updated : route))
+      );
+
+      setEditingRoute(null);
+      setRouteModalOpen(false);
+      setRouteSlug("");
+      setRoutePixelId("");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao atualizar rota");
     }
-
-    const updated = await res.json();
-
-    setRoutes((prev) =>
-      prev.map((route) =>
-        route.id === updated.id ? updated : route
-      )
-    );
-
-    setEditingRoute(null);
-    setRouteModalOpen(false);
-
-    setRouteSlug("");
-    setRoutePixelId("");
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao atualizar rota");
   }
-}
 
   async function handleDeleteRoute(id) {
     const confirmDelete = window.confirm("Tem certeza que deseja excluir esta rota?");
@@ -313,14 +302,12 @@ export default function Links({
   }
 
   function handleEditRoute(route) {
-  setEditingRoute(route);
-
-  setRouteDomain(route.domain || "");
-  setRouteSlug(route.slug || "");
-  setRoutePixelId(route.pixelId || "");
-
-  setRouteModalOpen(true);
-}
+    setEditingRoute(route);
+    setRouteDomain(route.domain || "");
+    setRouteSlug(route.slug || "");
+    setRoutePixelId(route.pixelId || "");
+    setRouteModalOpen(true);
+  }
 
   function getRouteUrl(route) {
     return `${String(route.domain).replace(/\/+$/, "")}/${String(
@@ -494,34 +481,6 @@ export default function Links({
   return (
     <>
       <div className="links-toolbar">
-        <button className="back-button" onClick={onBack}>
-  « Voltar
-</button>
-
-<div className="breadcrumb">
-  <span
-    className="breadcrumb-link"
-    onClick={onGoProjects}
-  >
-    Projetos
-  </span>
-
-  <span className="breadcrumb-separator">›</span>
-
-  <span
-    className="breadcrumb-link"
-    onClick={onGoSplitters}
-  >
-    {project?.name || project?.title || "Projeto"}
-  </span>
-
-  <span className="breadcrumb-separator">›</span>
-
-  <span className="breadcrumb-current">
-    Gerenciar links
-  </span>
-</div>
-
         <div className="status-dot"></div>
 
         <input
@@ -556,7 +515,6 @@ export default function Links({
         >
           👁
         </button>
-
       </div>
 
       <section className="page-header">
@@ -580,54 +538,49 @@ export default function Links({
       </section>
 
       <section style={{ marginBottom: "18px" }}>
-  <h3 style={{ marginBottom: "10px" }}>Rotas do split</h3>
+        <h3 style={{ marginBottom: "10px" }}>Rotas do split</h3>
 
-  {routes.length === 0 && (
-    <p style={{ color: "#888" }}>Nenhuma rota cadastrada.</p>
-  )}
+        {routes.length === 0 && (
+          <p style={{ color: "#888" }}>Nenhuma rota cadastrada.</p>
+        )}
 
-  {routes.map((route) => (
-    <div
-      key={route.id}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        marginBottom: "8px",
-        padding: "10px",
-        border: "1px solid #222",
-        borderRadius: "8px",
-      }}
-    >
-      <span style={{ flex: 1 }}>
-        {getRouteUrl(route)}
-      </span>
+        {routes.map((route) => (
+          <div
+            key={route.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "8px",
+              padding: "10px",
+              border: "1px solid #222",
+              borderRadius: "8px",
+            }}
+          >
+            <span style={{ flex: 1 }}>{getRouteUrl(route)}</span>
 
-      <div className="route-actions">
-  <button
-    className="route-button"
-    onClick={() => copyRoute(route)}
-  >
-    Copiar
-  </button>
+            <div className="route-actions">
+              <button className="route-button" onClick={() => copyRoute(route)}>
+                Copiar
+              </button>
 
-  <button
-    className="route-button"
-    onClick={() => handleEditRoute(route)}
-  >
-    Editar
-  </button>
+              <button
+                className="route-button"
+                onClick={() => handleEditRoute(route)}
+              >
+                Editar
+              </button>
 
-  <button
-    className="route-button danger"
-    onClick={() => handleDeleteRoute(route.id)}
-  >
-    🗑
-  </button>
-</div>
-    </div>
-  ))}
-</section>
+              <button
+                className="route-button danger"
+                onClick={() => handleDeleteRoute(route.id)}
+              >
+                🗑
+              </button>
+            </div>
+          </div>
+        ))}
+      </section>
 
       <div className="links-table">
         <div className="links-row links-header">
@@ -687,7 +640,7 @@ export default function Links({
       {routeModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Adicionar rota</h2>
+            <h2>{editingRoute ? "Editar rota" : "Adicionar rota"}</h2>
 
             <label>Domínio</label>
             <input
@@ -721,18 +674,19 @@ export default function Links({
             </p>
 
             <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
-              <button className="new-button" onClick={ 
-                                             editingRoute
-                                               ? handleUpdateRoute
-                                              : handleCreateRoute
-                                            }
+              <button
+                className="new-button"
+                onClick={editingRoute ? handleUpdateRoute : handleCreateRoute}
               >
                 Salvar rota
               </button>
 
               <button
                 className="mini-button"
-                onClick={() => setRouteModalOpen(false)}
+                onClick={() => {
+                  setEditingRoute(null);
+                  setRouteModalOpen(false);
+                }}
               >
                 Cancelar
               </button>

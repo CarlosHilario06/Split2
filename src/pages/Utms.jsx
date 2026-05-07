@@ -59,9 +59,7 @@ export default function Utms({ project, onBack }) {
   return (
     <>
       <div className="page-top-actions">
-        <button className="back-button" onClick={onBack}>
-          « Voltar
-        </button>
+        
       </div>
 
       <section className="page-header">
