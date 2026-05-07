@@ -573,17 +573,18 @@ export default function Links({ project, splitter, onBack }) {
       </span>
 
       <div className="route-actions">
-        <button onClick={() => copyRoute(route.slug)}>
-          Copiar
-        </button>
+  <button className="route-button" onClick={() => copyRoute(route)}>
+    Copiar
+  </button>
 
-        <button onClick={() => handleEditRoute(route)}>
-          Editar
-        </button>
+  <button className="route-button" onClick={() => handleEditRoute(route)}>
+    Editar
+  </button>
 
-<button onClick={() => handleDeleteRoute(route.id)}>          🗑
-        </button>
-      </div>
+  <button className="route-button danger" onClick={() => handleDeleteRoute(route.id)}>
+    🗑
+  </button>
+</div>
     </div>
   ))}
 </section>

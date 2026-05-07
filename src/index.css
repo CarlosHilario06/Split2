@@ -943,3 +943,27 @@ button:hover {
   background: #1d3760;
   color: white;
 }
+
+.route-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.route-button {
+  border: 1px solid #333;
+  background: #111;
+  color: #fff;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.route-button:hover {
+  background: #1c1c1c;
+}
+
+.route-button.danger {
+  padding: 7px 10px;
+}
