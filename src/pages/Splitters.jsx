@@ -81,9 +81,7 @@ export default function Splitters({ project, onBack, onOpenSplitter }) {
   return (
     <>
       <div className="splitters-top">
-        <button className="back-button" onClick={onBack}>
-          ← Voltar
-        </button>
+        
 
         <strong className="project-name-label">{project?.name}</strong>
       </div>
