@@ -26,17 +26,6 @@ function getLinkUtms(link) {
   };
 }
 
-<div className="breadcrumb">
-  {breadcrumb.map((item, index) => (
-    <span key={`${item}-${index}`}>
-      {item}
-      {index < breadcrumb.length - 1 && (
-        <span className="breadcrumb-separator"> › </span>
-      )}
-    </span>
-  ))}
-</div>
-
 export default function Links({ project, splitter, onBack, breadcrumb = [] }) {
   const [activeTab, setActiveTab] = useState("1");
   const [links, setLinks] = useState([]);
@@ -501,6 +490,17 @@ export default function Links({ project, splitter, onBack, breadcrumb = [] }) {
         <button className="back-button" onClick={onBack}>
   « Voltar
 </button>
+
+<div className="breadcrumb">
+  {breadcrumb.map((item, index) => (
+    <span key={`${item}-${index}`}>
+      {item}
+      {index < breadcrumb.length - 1 && (
+        <span className="breadcrumb-separator"> › </span>
+      )}
+    </span>
+  ))}
+</div>
 
         <div className="status-dot"></div>
 
