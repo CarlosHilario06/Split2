@@ -237,6 +237,25 @@ app.post("/api/projects/:projectId/splitters", async (req, res) => {
   }
 });
 
+app.delete("/api/splitters/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    await prisma.splitter.delete({
+      where: { id },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao deletar splitter:", error);
+    res.status(500).json({ error: "Erro ao deletar splitter" });
+  }
+});
+
 /* =========================
    SPLITTER TABS
 ========================= */
