@@ -238,6 +238,95 @@ app.post("/api/projects/:projectId/splitters", async (req, res) => {
 });
 
 /* =========================
+   SPLITTER TABS
+========================= */
+
+app.get("/api/splitters/:splitterId/tabs", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+
+    const tabs = await prisma.splitterTab.findMany({
+      where: { splitterId },
+      orderBy: { createdAt: "asc" },
+    });
+
+    res.json(tabs);
+  } catch (error) {
+    console.error("Erro ao buscar splits:", error);
+    res.status(500).json({ error: "Erro ao buscar splits" });
+  }
+});
+
+app.post("/api/splitters/:splitterId/tabs", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+    const { tab } = req.body;
+
+    const cleanTab = String(tab || "").trim();
+
+    if (!cleanTab) {
+      return res.status(400).json({ error: "Tab é obrigatória" });
+    }
+
+    const created = await prisma.splitterTab.upsert({
+      where: {
+        splitterId_tab: {
+          splitterId,
+          tab: cleanTab,
+        },
+      },
+      update: {},
+      create: {
+        splitterId,
+        tab: cleanTab,
+      },
+    });
+
+    res.json(created);
+  } catch (error) {
+    console.error("Erro ao criar split:", error);
+    res.status(500).json({ error: "Erro ao criar split" });
+  }
+});
+
+app.delete("/api/splitters/:splitterId/tabs/:tab", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+    const tab = String(req.params.tab || "").trim();
+
+    if (!tab) {
+      return res.status(400).json({ error: "Tab inválida" });
+    }
+
+    await prisma.link.deleteMany({
+      where: {
+        splitterId,
+        tab,
+      },
+    });
+
+    await prisma.splitterRoute.deleteMany({
+      where: {
+        splitterId,
+        tab,
+      },
+    });
+
+    await prisma.splitterTab.deleteMany({
+      where: {
+        splitterId,
+        tab,
+      },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao deletar split:", error);
+    res.status(500).json({ error: "Erro ao deletar split" });
+  }
+});
+
+/* =========================
    LINKS
 ========================= */
 
@@ -267,6 +356,20 @@ app.post("/api/splitters/:splitterId/links", async (req, res) => {
     const { url, type, utms, tab } = req.body;
 
     const linkTab = String(tab || "1");
+
+    await prisma.splitterTab.upsert({
+      where: {
+        splitterId_tab: {
+          splitterId,
+          tab: linkTab,
+        },
+      },
+      update: {},
+      create: {
+        splitterId,
+        tab: linkTab,
+      },
+    });
 
     const existingLink = await prisma.link.findFirst({
       where: {
@@ -388,6 +491,22 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
       return res.status(400).json({ error: "Domínio e slug são obrigatórios" });
     }
 
+    const routeTab = String(tab || "1");
+
+    await prisma.splitterTab.upsert({
+      where: {
+        splitterId_tab: {
+          splitterId,
+          tab: routeTab,
+        },
+      },
+      update: {},
+      create: {
+        splitterId,
+        tab: routeTab,
+      },
+    });
+
     const cleanDomain = String(domain).trim().replace(/\/+$/, "");
     const cleanSlug = String(slug)
       .trim()
@@ -400,7 +519,7 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
         slug: cleanSlug,
         pixelId: pixelId || null,
         splitterId,
-        tab: String(tab || "1"),
+        tab: routeTab,
       },
     });
 
@@ -415,6 +534,32 @@ app.put("/api/routes/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { domain, slug, tab, pixelId } = req.body;
+
+    const existingRoute = await prisma.splitterRoute.findUnique({
+      where: { id },
+    });
+
+    if (!existingRoute) {
+      return res.status(404).json({ error: "Rota não encontrada" });
+    }
+
+    if (tab !== undefined) {
+      const cleanTab = String(tab || "1");
+
+      await prisma.splitterTab.upsert({
+        where: {
+          splitterId_tab: {
+            splitterId: existingRoute.splitterId,
+            tab: cleanTab,
+          },
+        },
+        update: {},
+        create: {
+          splitterId: existingRoute.splitterId,
+          tab: cleanTab,
+        },
+      });
+    }
 
     const updated = await prisma.splitterRoute.update({
       where: { id },

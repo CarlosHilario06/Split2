@@ -28,7 +28,7 @@ function getLinkUtms(link) {
 
 export default function Links({ project, splitter, onBack }) {
   const [activeTab, setActiveTab] = useState(null);
-  const [createdTabs, setCreatedTabs] = useState([]);
+  const [tabs, setTabs] = useState([]);
   const [allLinks, setAllLinks] = useState([]);
   const [allRoutes, setAllRoutes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,13 +42,9 @@ export default function Links({ project, splitter, onBack }) {
 
   const loadRequestRef = useRef(0);
 
-  const splitTabs = Array.from(
-    new Set([
-      ...createdTabs.map(String),
-      ...allLinks.map((link) => String(link.tab || "1")),
-      ...allRoutes.map((route) => String(route.tab || "1")),
-    ])
-  ).sort((a, b) => Number(a) - Number(b));
+  const splitTabs = tabs
+    .map((tab) => String(tab.tab))
+    .sort((a, b) => Number(a) - Number(b));
 
   const hasConfiguredSplits = splitTabs.length > 0;
 
@@ -59,6 +55,22 @@ export default function Links({ project, splitter, onBack }) {
   const routes = activeTab
     ? allRoutes.filter((route) => String(route.tab || "1") === String(activeTab))
     : [];
+
+  async function loadTabs() {
+    if (!splitter?.id) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/splitters/${splitter.id}/tabs`);
+
+      if (!res.ok) throw new Error("Erro ao carregar splits");
+
+      const data = await res.json();
+      setTabs(data);
+    } catch (err) {
+      console.error("Erro ao carregar splits:", err);
+      alert("Erro ao carregar splits");
+    }
+  }
 
   async function loadLinks() {
     if (!splitter?.id) return;
@@ -120,8 +132,9 @@ export default function Links({ project, splitter, onBack }) {
   useEffect(() => {
     setAllLinks([]);
     setAllRoutes([]);
-    setCreatedTabs([]);
+    setTabs([]);
     setActiveTab(null);
+    loadTabs();
     loadLinks();
     loadRoutes();
   }, [splitter?.id]);
@@ -140,17 +153,65 @@ export default function Links({ project, splitter, onBack }) {
     setActiveTab(String(tab));
   }
 
-  function handleCreateSplitTab() {
-    const nextTab =
-      splitTabs.length > 0
-        ? String(Math.max(...splitTabs.map(Number)) + 1)
-        : "1";
+  async function handleCreateSplitTab() {
+    if (!splitter?.id) return;
 
-    setCreatedTabs((prev) =>
-      prev.includes(nextTab) ? prev : [...prev, nextTab]
+    try {
+      const nextTab =
+        splitTabs.length > 0
+          ? String(Math.max(...splitTabs.map(Number)) + 1)
+          : "1";
+
+      const res = await fetch(`${API_URL}/api/splitters/${splitter.id}/tabs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tab: nextTab,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Erro ao criar split");
+
+      const created = await res.json();
+
+      setTabs((prev) => [...prev, created]);
+      setActiveTab(String(created.tab));
+    } catch (err) {
+      console.error("Erro ao criar split:", err);
+      alert("Erro ao criar split");
+    }
+  }
+
+  async function handleDeleteSplit(tab) {
+    if (!splitter?.id) return;
+
+    const confirmDelete = window.confirm(
+      `Excluir split ${tab}? Isso também apagará os links e rotas desse split.`
     );
 
-    setActiveTab(nextTab);
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/splitters/${splitter.id}/tabs/${tab}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Erro ao deletar split");
+
+      setTabs((prev) => prev.filter((item) => String(item.tab) !== String(tab)));
+      setAllLinks((prev) => prev.filter((link) => String(link.tab) !== String(tab)));
+      setAllRoutes((prev) => prev.filter((route) => String(route.tab) !== String(tab)));
+
+      if (String(activeTab) === String(tab)) {
+        const remainingTabs = splitTabs.filter((item) => String(item) !== String(tab));
+        setActiveTab(remainingTabs[0] || null);
+      }
+    } catch (err) {
+      console.error("Erro ao deletar split:", err);
+      alert("Erro ao deletar split");
+    }
   }
 
   const activeLinks = links.filter((link) => !link.disabled);
@@ -287,7 +348,6 @@ export default function Links({ project, splitter, onBack }) {
         ...prev,
       ]);
 
-      setCreatedTabs((prev) => prev.filter((tab) => tab !== String(activeTab)));
       setRouteSlug("");
       setRoutePixelId("");
       setRouteModalOpen(false);
@@ -406,7 +466,6 @@ export default function Links({ project, splitter, onBack }) {
       };
 
       setAllLinks((prev) => [safeCreated, ...prev]);
-      setCreatedTabs((prev) => prev.filter((tab) => tab !== String(activeTab)));
       setModalOpen(false);
     } catch (err) {
       console.error("Erro ao criar link:", err);
@@ -543,13 +602,29 @@ export default function Links({ project, splitter, onBack }) {
           />
 
           {splitTabs.map((tab) => (
-            <button
+            <div
               key={tab}
-              className={`tab-button ${activeTab === tab ? "active" : ""}`}
-              onClick={() => changeTab(tab)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
             >
-              {tab}
-            </button>
+              <button
+                className={`tab-button ${activeTab === tab ? "active" : ""}`}
+                onClick={() => changeTab(tab)}
+              >
+                {tab}
+              </button>
+
+              <button
+                className="tab-delete-button"
+                onClick={() => handleDeleteSplit(tab)}
+                title={`Excluir split ${tab}`}
+              >
+                ×
+              </button>
+            </div>
           ))}
 
           <button className="tab-button" onClick={handleCreateSplitTab}>
