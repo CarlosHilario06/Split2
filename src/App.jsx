@@ -58,6 +58,30 @@ export default function App() {
     setActivePage(previousPage);
   }
 
+  function getBreadcrumb() {
+  if (activePage === "projects") {
+    return ["Projetos"];
+  }
+
+  if (activePage === "splitters") {
+    return ["Projetos", selectedProject?.name || "Projeto"];
+  }
+
+  if (activePage === "links") {
+    return [
+      "Projetos",
+      selectedProject?.name || "Projeto",
+      "Gerenciar links",
+    ];
+  }
+
+  if (activePage === "utms") {
+    return ["UTMs"];
+  }
+
+  return [];
+}
+
   // 🔒 Tela de login
   if (!isLogged) {
     return <Login onLogin={handleLogin} />;
@@ -98,7 +122,8 @@ export default function App() {
             project={selectedProject}
             splitter={selectedSplitter}
             onBack={backToSplitters}
-          />
+            breadcrumb={getBreadcrumb()}
+/>
         )}
       </main>
     </div>

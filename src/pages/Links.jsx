@@ -26,7 +26,18 @@ function getLinkUtms(link) {
   };
 }
 
-export default function Links({ project, splitter, onBack }) {
+<div className="breadcrumb">
+  {breadcrumb.map((item, index) => (
+    <span key={`${item}-${index}`}>
+      {item}
+      {index < breadcrumb.length - 1 && (
+        <span className="breadcrumb-separator"> › </span>
+      )}
+    </span>
+  ))}
+</div>
+
+export default function Links({ project, splitter, onBack, breadcrumb = [] }) {
   const [activeTab, setActiveTab] = useState("1");
   const [links, setLinks] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -488,8 +499,8 @@ export default function Links({ project, splitter, onBack }) {
     <>
       <div className="links-toolbar">
         <button className="back-button" onClick={onBack}>
-          « Voltar
-        </button>
+  « Voltar
+</button>
 
         <div className="status-dot"></div>
 
@@ -573,15 +584,24 @@ export default function Links({ project, splitter, onBack }) {
       </span>
 
       <div className="route-actions">
-  <button className="route-button" onClick={() => copyRoute(route)}>
+  <button
+    className="route-button"
+    onClick={() => copyRoute(route)}
+  >
     Copiar
   </button>
 
-  <button className="route-button" onClick={() => handleEditRoute(route)}>
+  <button
+    className="route-button"
+    onClick={() => handleEditRoute(route)}
+  >
     Editar
   </button>
 
-  <button className="route-button danger" onClick={() => handleDeleteRoute(route.id)}>
+  <button
+    className="route-button danger"
+    onClick={() => handleDeleteRoute(route.id)}
+  >
     🗑
   </button>
 </div>
