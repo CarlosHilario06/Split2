@@ -1058,3 +1058,31 @@ button:hover {
 .page-header {
   margin-top: 10px;
 }
+
+.tab-delete-button {
+  width: 18px;
+  height: 18px;
+  margin-left: -6px;
+
+  border: 1px solid #24466f;
+  border-radius: 50%;
+
+  background: #0b1730;
+  color: #9db7dd;
+
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: 0.2s;
+}
+
+.tab-delete-button:hover {
+  background: #dc2626;
+  border-color: #ef4444;
+  color: #fff;
+}
