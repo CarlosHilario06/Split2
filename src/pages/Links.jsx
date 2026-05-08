@@ -843,7 +843,7 @@ export default function Links({ project, splitter, onBack }) {
             <input
               value={routeSlug}
               onChange={(e) => setRouteSlug(e.target.value)}
-              placeholder="paskola"
+              placeholder="adicione seu slug"
             />
 
             <label>Pixel ID</label>
