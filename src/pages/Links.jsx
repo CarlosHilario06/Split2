@@ -40,6 +40,8 @@ export default function Links({ project, splitter, onBack }) {
   const [editingUrl, setEditingUrl] = useState(null);
   const [showZeroOnly, setShowZeroOnly] = useState(false);
   const [gamStatus, setGamStatus] = useState(null);
+  const [editingTab, setEditingTab] = useState(null);
+  const [editingName, setEditingName] = useState("");
 
   const loadRequestRef = useRef(0);
 
@@ -165,6 +167,42 @@ export default function Links({ project, splitter, onBack }) {
     setEditingUrl(null);
     setActiveTab(String(tab));
   }
+
+  async function renameTab(oldTab, newName) {
+  if (!newName.trim()) return;
+
+  try {
+    const res = await fetch(
+      `${API_URL}/api/splitters/${splitter.id}/tabs/${oldTab}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          newTab: newName,
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Erro ao renomear split");
+
+    setTabs((prev) =>
+      prev.map((tab) =>
+        String(tab.tab) === String(oldTab)
+          ? { ...tab, tab: newName }
+          : tab
+      )
+    );
+
+    if (String(activeTab) === String(oldTab)) {
+      setActiveTab(newName);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao renomear split");
+  }
+}
 
   async function handleCreateSplitTab() {
     if (!splitter?.id) return;
@@ -624,11 +662,37 @@ export default function Links({ project, splitter, onBack }) {
               }}
             >
               <button
-                className={`tab-button ${activeTab === tab ? "active" : ""}`}
-                onClick={() => changeTab(tab)}
-              >
-                {tab}
-              </button>
+  className={`tab-button ${activeTab === tab ? "active" : ""}`}
+  onClick={() => changeTab(tab)}
+  onDoubleClick={() => {
+    setEditingTab(tab);
+    setEditingName(tab);
+  }}
+>
+  {editingTab === tab ? (
+    <input
+      autoFocus
+      value={editingName}
+      onChange={(e) => setEditingName(e.target.value)}
+      onBlur={() => {
+        renameTab(tab, editingName);
+        setEditingTab(null);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          renameTab(tab, editingName);
+          setEditingTab(null);
+        }
+
+        if (e.key === "Escape") {
+          setEditingTab(null);
+        }
+      }}
+    />
+  ) : (
+    tab
+  )}
+</button>
 
               <button
                 className="tab-delete-button"

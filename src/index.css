@@ -406,30 +406,46 @@ p {
 }
 
 .route-button.danger,
-.tab-delete-button {
-  color: var(--danger);
-  border-color: rgba(220, 38, 38, 0.18);
-  background: var(--text);
-}
-
-.route-button.danger:hover,
-.tab-delete-button:hover {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: var(--text);
+.tab-button {
+  position: relative;
+  overflow: visible;
 }
 
 .tab-delete-button {
-  width: 20px;
-  height: 20px;
-  margin-left: -5px;
-  padding: 0;
-  border-radius: 999px;
-  font-size: 11px;
-  line-height: 1;
+  position: absolute;
+
+  top: -6px;
+  right: -6px;
+
+  width: 18px;
+  height: 18px;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(255, 93, 115, 0.25);
+
+  background: #111827;
+  color: #ff5d73;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  font-size: 10px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+
+  z-index: 5;
+}
+
+.tab-delete-button:hover {
+  background: #ff5d73;
+  color: white;
+
+  transform: scale(1.08);
 }
 
 /* ==========================================================
@@ -1386,4 +1402,18 @@ select:focus-visible {
   height: 18px;
   stroke-width: 2.2;
   flex-shrink: 0;
+}
+
+.tab-button input {
+  width: 70px;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  color: white;
+  text-align: center;
+
+  font-size: 14px;
+  font-weight: 700;
 }
