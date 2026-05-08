@@ -321,6 +321,67 @@ app.post("/api/splitters/:splitterId/tabs", async (req, res) => {
   }
 });
 
+app.put("/api/splitters/:splitterId/tabs/:oldTab", async (req, res) => {
+  try {
+    const splitterId = Number(req.params.splitterId);
+    const oldTab = String(req.params.oldTab || "").trim();
+    const { newTab } = req.body;
+
+    const cleanNewTab = String(newTab || "").trim();
+
+    if (!oldTab || !cleanNewTab) {
+      return res.status(400).json({
+        error: "Tabs inválidas",
+      });
+    }
+
+    // Atualiza tabela de tabs
+    await prisma.splitterTab.updateMany({
+      where: {
+        splitterId,
+        tab: oldTab,
+      },
+      data: {
+        tab: cleanNewTab,
+      },
+    });
+
+    // Atualiza links
+    await prisma.link.updateMany({
+      where: {
+        splitterId,
+        tab: oldTab,
+      },
+      data: {
+        tab: cleanNewTab,
+      },
+    });
+
+    // Atualiza rotas
+    await prisma.splitterRoute.updateMany({
+      where: {
+        splitterId,
+        tab: oldTab,
+      },
+      data: {
+        tab: cleanNewTab,
+      },
+    });
+
+    res.json({
+      success: true,
+      oldTab,
+      newTab: cleanNewTab,
+    });
+  } catch (error) {
+    console.error("Erro ao renomear split:", error);
+
+    res.status(500).json({
+      error: "Erro ao renomear split",
+    });
+  }
+});
+
 app.delete("/api/splitters/:splitterId/tabs/:tab", async (req, res) => {
   try {
     const splitterId = Number(req.params.splitterId);

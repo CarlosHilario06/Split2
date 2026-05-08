@@ -654,13 +654,9 @@ export default function Links({ project, splitter, onBack }) {
 
           {splitTabs.map((tab) => (
             <div
-              key={tab}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
+  key={tab}
+  className="tab-wrapper"
+>
               <button
   className={`tab-button ${activeTab === tab ? "active" : ""}`}
   onClick={() => changeTab(tab)}
