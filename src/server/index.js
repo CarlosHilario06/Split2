@@ -6,16 +6,10 @@ import cron from "node-cron";
 
 const app = express();
 
-const app = express();
-
 let lastGamSync = null;
 let gamSyncRunning = false;
 let gamSyncError = false;
 
-app.get("/teste123", (req, res) => {
-  res.send("FUNCIONANDO");
-});
-
 app.use(cors({
   origin: [
     "https://springow.up.railway.app",
@@ -23,12 +17,6 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(cors({
-  origin: [
-    "https://springow.up.railway.app",
-  ],
-  credentials: true
-}));
 app.use(express.json());
 
 function normalize(value) {
@@ -816,132 +804,6 @@ app.get("/api/gam/status", (req, res) => {
     running: gamSyncRunning,
     error: gamSyncError,
   });
-});
-
-app.get("/go/:slug", async (req, res) => {
-  try {
-    const slug = String(req.params.slug || "")
-      .trim()
-      .replace(/^\/+/, "")
-      .replace(/\/+$/, "");
-
-    const host = String(req.hostname || "").trim();
-    const hostHeader = String(req.get("host") || "").trim();
-
-    console.log("DEBUG /go/:slug", {
-      slug,
-      hostname: host,
-      hostHeader,
-    });
-
-    let route = await prisma.splitterRoute.findFirst({
-      where: {
-        slug,
-        OR: [
-          { domain: host },
-          { domain: hostHeader },
-          { domain: `http://${host}` },
-          { domain: `https://${host}` },
-          { domain: `http://${hostHeader}` },
-          { domain: `https://${hostHeader}` },
-        ],
-      },
-      include: {
-        splitter: true,
-      },
-    });
-
-    if (!route) {
-      console.log("⚠️ Rota não encontrada por domínio. Tentando fallback só por slug...");
-
-      route = await prisma.splitterRoute.findFirst({
-        where: { slug },
-        include: {
-          splitter: true,
-        },
-      });
-    }
-
-    if (!route) {
-      console.log("❌ Rota não encontrada:", {
-        slug,
-        hostname: host,
-        hostHeader,
-      });
-
-      return res.status(404).send("Rota não encontrada");
-    }
-
-    console.log("✅ Rota encontrada:", {
-      id: route.id,
-      domain: route.domain,
-      slug: route.slug,
-      splitterId: route.splitterId,
-      tab: route.tab,
-    });
-
-    const links = await prisma.link.findMany({
-      where: {
-        splitterId: route.splitterId,
-        tab: String(route.tab || "1"),
-        disabled: false,
-      },
-    });
-
-    if (!links.length) {
-      return res.status(404).send("Nenhum link ativo encontrado para essa rota");
-    }
-
-    let selectedLink = pickByProbability(links);
-
-    if (!selectedLink) {
-      selectedLink = links[0];
-    }
-
-    if (!selectedLink?.url || !String(selectedLink.url).startsWith("http")) {
-      return res.status(500).send("URL inválida no link selecionado");
-    }
-
-    await prisma.link.update({
-      where: { id: selectedLink.id },
-      data: {
-        impressions: {
-          increment: 1,
-        },
-      },
-    });
-
-    const finalUrl = buildUrlWithUtms(selectedLink.url, selectedLink.utms);
-
-    console.log("UTMs aplicadas:", {
-      original: selectedLink.url,
-      utms: selectedLink.utms,
-      final: finalUrl,
-    });
-
-    console.log("🚀 Redirect:", {
-      slug,
-      domain: route.domain,
-      splitterId: route.splitterId,
-      tab: route.tab,
-      selectedLinkId: selectedLink.id,
-      finalUrl,
-    });
-
-    return res.send(
-      renderRedirectLoader({
-        url: finalUrl,
-        pixelId:
-          route.pixelId ||
-          process.env.FB_PIXEL_ID ||
-          "1006617537466411",
-        customHtml: route.splitter?.loaderHtml,
-      })
-    );
-  } catch (error) {
-    console.error("Erro em /go/:slug:", error);
-    return res.status(500).send("Erro interno no redirecionamento");
-  }
 });
 
 app.get("/go/:slug", async (req, res) => {
