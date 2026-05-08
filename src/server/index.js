@@ -578,7 +578,7 @@ app.get("/api/splitters/:splitterId/routes", async (req, res) => {
 app.post("/api/splitters/:splitterId/routes", async (req, res) => {
   try {
     const splitterId = Number(req.params.splitterId);
-    const { domain, slug, tab, pixelId } = req.body;
+    const { domain, slug, tab, pixelId, loaderTitle, loaderSubtitle } = req.body;
 
     if (!domain || !slug) {
       return res.status(400).json({ error: "Domínio e slug são obrigatórios" });
@@ -611,6 +611,8 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
         domain: cleanDomain,
         slug: cleanSlug,
         pixelId: pixelId || null,
+        loaderTitle: loaderTitle || null,
+        loaderSubtitle: loaderSubtitle || null,
         splitterId,
         tab: routeTab,
       },
@@ -626,7 +628,14 @@ app.post("/api/splitters/:splitterId/routes", async (req, res) => {
 app.put("/api/routes/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { domain, slug, tab, pixelId } = req.body;
+    const {
+  domain,
+  slug,
+  tab,
+  pixelId,
+  loaderTitle,
+  loaderSubtitle,
+} = req.body;
 
     const existingRoute = await prisma.splitterRoute.findUnique({
       where: { id },
@@ -667,7 +676,15 @@ app.put("/api/routes/:id", async (req, res) => {
           tab: String(tab || "1"),
         }),
         ...(pixelId !== undefined && {
-        pixelId: pixelId || null,
+  pixelId: pixelId || null,
+}),
+
+...(loaderTitle !== undefined && {
+  loaderTitle: loaderTitle || null,
+}),
+
+...(loaderSubtitle !== undefined && {
+  loaderSubtitle: loaderSubtitle || null,
 }),
       },
     });
@@ -758,7 +775,13 @@ function pickByProbability(links) {
   return links[links.length - 1];
 }
 
-function renderRedirectLoader({ url, pixelId, customHtml }) {
+function renderRedirectLoader({
+  url,
+  pixelId,
+  customHtml,
+  loaderTitle,
+  loaderSubtitle,
+}) {  
   const finalUrlJson = JSON.stringify(url);
 
   if (customHtml && typeof customHtml === "string") {
@@ -841,8 +864,8 @@ function renderRedirectLoader({ url, pixelId, customHtml }) {
 <body>
   <div class="box">
     <div class="spinner"></div>
-    <h1>Ieškant geriausio sprendimo...</h1>
-    <p>Palaukite keletą sekundžių.</p>
+    <h1>${loaderTitle || "Título"}</h1>
+<p>${loaderSubtitle || "Subtítulo"}</p>
   </div>
 
   <script>
@@ -979,10 +1002,12 @@ app.get("/go/:slug", async (req, res) => {
 
     return res.send(
       renderRedirectLoader({
-        url: finalUrl,
-        pixelId: route.pixelId || process.env.FB_PIXEL_ID || "1006617537466411",
-        customHtml: route.splitter?.loaderHtml,
-      })
+  url: finalUrl,
+  pixelId: route.pixelId || process.env.FB_PIXEL_ID || "1006617537466411",
+  customHtml: route.splitter?.loaderHtml,
+  loaderTitle: route.loaderTitle,
+  loaderSubtitle: route.loaderSubtitle,
+})
     );
   } catch (error) {
     console.error("Erro em /go/:slug:", error);

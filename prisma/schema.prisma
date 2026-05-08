@@ -53,14 +53,16 @@ model Link {
 }
 
 model SplitterRoute {
-  id         Int      @id @default(autoincrement())
-  domain     String
-  slug       String
-  pixelId    String?
-  tab        String   @default("1")
-  splitterId Int
-  splitter   Splitter @relation(fields: [splitterId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  domain         String
+  slug           String
+  pixelId        String?
+  loaderTitle    String?
+  loaderSubtitle String?
+  tab            String   @default("1")
+  splitterId     Int
+  splitter       Splitter @relation(fields: [splitterId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
 
   @@unique([domain, slug])
 }

@@ -42,6 +42,8 @@ export default function Links({ project, splitter, onBack }) {
   const [gamStatus, setGamStatus] = useState(null);
   const [editingTab, setEditingTab] = useState(null);
   const [editingName, setEditingName] = useState("");
+  const [routeLoaderTitle, setRouteLoaderTitle] = useState("");
+  const [routeLoaderSubtitle, setRouteLoaderSubtitle] = useState("");
 
   const loadRequestRef = useRef(0);
 
@@ -399,11 +401,13 @@ export default function Links({ project, splitter, onBack }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          domain: routeDomain,
-          slug: routeSlug,
-          pixelId: routePixelId,
-          tab: String(activeTab),
-        }),
+  domain: routeDomain,
+  slug: routeSlug,
+  pixelId: routePixelId,
+  loaderTitle: routeLoaderTitle,
+  loaderSubtitle: routeLoaderSubtitle,
+  tab: String(activeTab),
+}),
       });
 
       if (!res.ok) throw new Error("Erro ao criar rota");
@@ -437,11 +441,13 @@ export default function Links({ project, splitter, onBack }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          domain: routeDomain,
-          slug: routeSlug,
-          pixelId: routePixelId,
-          tab: String(activeTab),
-        }),
+        domain: routeDomain,
+        slug: routeSlug,
+        pixelId: routePixelId,
+        loaderTitle: routeLoaderTitle,
+        loaderSubtitle: routeLoaderSubtitle,
+        tab: String(activeTab),
+}),
       });
 
       if (!res.ok) {
@@ -458,6 +464,8 @@ export default function Links({ project, splitter, onBack }) {
       setRouteModalOpen(false);
       setRouteSlug("");
       setRoutePixelId("");
+      setRouteLoaderTitle("");
+      setRouteLoaderSubtitle("");
     } catch (err) {
       console.error(err);
       alert("Erro ao atualizar rota");
@@ -481,14 +489,18 @@ export default function Links({ project, splitter, onBack }) {
       alert("Erro ao deletar rota");
     }
   }
+function handleEditRoute(route) {
+  setEditingRoute(route);
 
-  function handleEditRoute(route) {
-    setEditingRoute(route);
-    setRouteDomain(route.domain || "");
-    setRouteSlug(route.slug || "");
-    setRoutePixelId(route.pixelId || "");
-    setRouteModalOpen(true);
-  }
+  setRouteDomain(route.domain || "");
+  setRouteSlug(route.slug || "");
+  setRoutePixelId(route.pixelId || "");
+
+  setRouteLoaderTitle(route.loaderTitle || "");
+  setRouteLoaderSubtitle(route.loaderSubtitle || "");
+
+  setRouteModalOpen(true);
+}
 
   function getRouteUrl(route) {
     return `${String(route.domain).replace(/\/+$/, "")}/${String(
@@ -926,11 +938,25 @@ export default function Links({ project, splitter, onBack }) {
             />
 
             <label>Pixel ID</label>
-            <input
-              value={routePixelId}
-              onChange={(e) => setRoutePixelId(e.target.value)}
-              placeholder="1006617537466411"
-            />
+<input
+  value={routePixelId}
+  onChange={(e) => setRoutePixelId(e.target.value)}
+  placeholder="1006617537466411"
+/>
+
+<label>Título do loader</label>
+<input
+  value={routeLoaderTitle}
+  onChange={(e) => setRouteLoaderTitle(e.target.value)}
+  placeholder="Ieškant geriausio sprendimo..."
+/>
+
+<label>Subtítulo do loader</label>
+<input
+  value={routeLoaderSubtitle}
+  onChange={(e) => setRouteLoaderSubtitle(e.target.value)}
+  placeholder="Palaukite keletą sekundžių."
+/>
 
             <p style={{ color: "#888", marginTop: "8px" }}>
               URL final:{" "}
