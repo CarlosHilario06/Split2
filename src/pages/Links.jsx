@@ -173,17 +173,17 @@ export default function Links({ project, splitter, onBack }) {
 
   try {
     const res = await fetch(
-      `${API_URL}/api/splitters/${splitter.id}/tabs/${oldTab}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          newTab: newName,
-        }),
-      }
-    );
+  `${API_URL}/api/splitters/${splitter.id}/tabs/${encodeURIComponent(oldTab)}`,
+  {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      newTab: newName.trim(),
+    }),
+  }
+);
 
     if (!res.ok) throw new Error("Erro ao renomear split");
 
