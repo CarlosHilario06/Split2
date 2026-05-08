@@ -712,7 +712,7 @@ export default function Links({ project, splitter, onBack }) {
               </button>
 
               <button className="new-button" onClick={() => setModalOpen(true)}>
-                Novo +
+                Nova URL
               </button>
             </>
           )}
