@@ -39,6 +39,7 @@ export default function Links({ project, splitter, onBack }) {
   const [editingRoute, setEditingRoute] = useState(null);
   const [editingUrl, setEditingUrl] = useState(null);
   const [showZeroOnly, setShowZeroOnly] = useState(false);
+  const [gamStatus, setGamStatus] = useState(null);
 
   const loadRequestRef = useRef(0);
 
@@ -129,6 +130,17 @@ export default function Links({ project, splitter, onBack }) {
     }
   }
 
+  async function loadGamStatus() {
+  try {
+    const res = await fetch(`${API_URL}/api/gam/status`);
+    const data = await res.json();
+
+    setGamStatus(data);
+  } catch (err) {
+    console.error("Erro ao buscar status GAM:", err);
+  }
+  }
+
   useEffect(() => {
     setAllLinks([]);
     setAllRoutes([]);
@@ -137,6 +149,7 @@ export default function Links({ project, splitter, onBack }) {
     loadTabs();
     loadLinks();
     loadRoutes();
+    loadGamStatus();
   }, [splitter?.id]);
 
   useEffect(() => {
@@ -633,8 +646,36 @@ export default function Links({ project, splitter, onBack }) {
 
           <div className="toolbar-spacer"></div>
 
-          <div className="toolbar-pill">${totalEcpm.toFixed(2)}</div>
-          <div className="toolbar-pill strong-pill">eCPM</div>
+         <div className="toolbar-pill">${totalEcpm.toFixed(2)}</div>
+
+<div
+  className="toolbar-pill strong-pill"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  }}
+>
+  eCPM
+
+  <span
+    title={
+      gamStatus?.lastSync
+        ? `Última sync: ${new Date(gamStatus.lastSync).toLocaleString("pt-BR")}`
+        : "Sem sync"
+    }
+    style={{
+      fontSize: "13px",
+      opacity: 0.9,
+    }}
+  >
+    {gamStatus?.error
+      ? "🔴"
+      : gamStatus?.running
+      ? "🟡"
+      : "🟢"}
+  </span>
+</div>
 
           <button
             className={`eye-button ${showZeroOnly ? "active" : ""}`}
