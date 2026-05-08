@@ -948,14 +948,14 @@ function handleEditRoute(route) {
 <input
   value={routeLoaderTitle}
   onChange={(e) => setRouteLoaderTitle(e.target.value)}
-  placeholder="Ieškant geriausio sprendimo..."
+  placeholder="Adicione o seu título..."
 />
 
 <label>Subtítulo do loader</label>
 <input
   value={routeLoaderSubtitle}
   onChange={(e) => setRouteLoaderSubtitle(e.target.value)}
-  placeholder="Palaukite keletą sekundžių."
+  placeholder="Adicione seu subtitulo..."
 />
 
             <p style={{ color: "#888", marginTop: "8px" }}>
