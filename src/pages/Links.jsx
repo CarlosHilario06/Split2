@@ -655,14 +655,30 @@ export default function Links({ project, splitter, onBack }) {
       ? `Última sync: ${new Date(gamStatus.lastSync).toLocaleString("pt-BR")}`
       : "GAM sem sincronização"
   }
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  }}
 >
-  {gamStatus?.error ? "🔴" : gamStatus?.running ? "🟡" : "🟢"} GAM{" "}
-  {gamStatus?.lastSync
-    ? new Date(gamStatus.lastSync).toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "--:--"}
+  <img
+    src="https://www.google.com/images/branding/product/2x/admanager_48dp.png"
+    alt="GAM"
+    style={{
+      width: "18px",
+      height: "18px",
+      borderRadius: "4px",
+    }}
+  />
+
+  <span>
+    {gamStatus?.lastSync
+      ? new Date(gamStatus.lastSync).toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "--:--"}
+  </span>
 </div>
 
           <button
