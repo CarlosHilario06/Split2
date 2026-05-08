@@ -871,6 +871,8 @@ function handleEditRoute(route) {
               <span>Ações</span>
             </div>
 
+
+
             {visibleLinks.length === 0 && (
               <p style={{ color: "#888", padding: "18px" }}>
                 {showZeroOnly ? "Nenhum link desativado." : "Nenhum link adicionado."}
@@ -914,6 +916,15 @@ function handleEditRoute(route) {
                 </div>
               </div>
             ))}
+                    </div>
+
+          <div className="add-url-bottom">
+            <button
+              className="new-button"
+              onClick={() => setModalOpen(true)}
+            >
+              + Adicionar nova URL
+            </button>
           </div>
         </>
       )}
