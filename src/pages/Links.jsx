@@ -169,34 +169,53 @@ export default function Links({ project, splitter, onBack }) {
   }
 
   async function renameTab(oldTab, newName) {
-  if (!newName.trim()) return;
+  const cleanNewName = newName.trim();
+
+  if (!cleanNewName) return;
+  if (String(oldTab) === cleanNewName) return;
 
   try {
     const res = await fetch(
-  `${API_URL}/api/splitters/${splitter.id}/tabs/${encodeURIComponent(oldTab)}`,
-  {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      newTab: newName.trim(),
-    }),
-  }
-);
+      `${API_URL}/api/splitters/${splitter.id}/tabs/${encodeURIComponent(oldTab)}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          newTab: cleanNewName,
+        }),
+      }
+    );
 
     if (!res.ok) throw new Error("Erro ao renomear split");
 
     setTabs((prev) =>
       prev.map((tab) =>
         String(tab.tab) === String(oldTab)
-          ? { ...tab, tab: newName }
+          ? { ...tab, tab: cleanNewName }
           : tab
       )
     );
 
+    setAllLinks((prev) =>
+      prev.map((link) =>
+        String(link.tab || "1") === String(oldTab)
+          ? { ...link, tab: cleanNewName }
+          : link
+      )
+    );
+
+    setAllRoutes((prev) =>
+      prev.map((route) =>
+        String(route.tab || "1") === String(oldTab)
+          ? { ...route, tab: cleanNewName }
+          : route
+      )
+    );
+
     if (String(activeTab) === String(oldTab)) {
-      setActiveTab(newName);
+      setActiveTab(cleanNewName);
     }
   } catch (err) {
     console.error(err);
