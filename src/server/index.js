@@ -12,6 +12,10 @@ let lastGamSync = null;
 let gamSyncRunning = false;
 let gamSyncError = false;
 
+app.get("/teste123", (req, res) => {
+  res.send("FUNCIONANDO");
+});
+
 app.use(cors({
   origin: [
     "https://springow.up.railway.app",
