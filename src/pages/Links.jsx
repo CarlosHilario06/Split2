@@ -649,32 +649,20 @@ export default function Links({ project, splitter, onBack }) {
          <div className="toolbar-pill">${totalEcpm.toFixed(2)}</div>
 
 <div
-  className="toolbar-pill strong-pill"
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  }}
+  className="toolbar-pill"
+  title={
+    gamStatus?.lastSync
+      ? `Última sync: ${new Date(gamStatus.lastSync).toLocaleString("pt-BR")}`
+      : "GAM sem sincronização"
+  }
 >
-  eCPM
-
-  <span
-    title={
-      gamStatus?.lastSync
-        ? `Última sync: ${new Date(gamStatus.lastSync).toLocaleString("pt-BR")}`
-        : "Sem sync"
-    }
-    style={{
-      fontSize: "13px",
-      opacity: 0.9,
-    }}
-  >
-    {gamStatus?.error
-      ? "🔴"
-      : gamStatus?.running
-      ? "🟡"
-      : "🟢"}
-  </span>
+  {gamStatus?.error ? "🔴" : gamStatus?.running ? "🟡" : "🟢"} GAM{" "}
+  {gamStatus?.lastSync
+    ? new Date(gamStatus.lastSync).toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "--:--"}
 </div>
 
           <button
