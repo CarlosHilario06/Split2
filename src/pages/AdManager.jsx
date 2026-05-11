@@ -89,6 +89,17 @@ export default function AdManager() {
     }
   }
 
+  async function syncConnection(id) {
+  try {
+    alert("Sync iniciado para o GAM ID: " + id);
+
+    // próxima etapa:
+    // POST `${API_URL}/api/gam/sync/${id}`
+  } catch (error) {
+    console.error("Erro ao sincronizar GAM:", error);
+  }
+}
+
   useEffect(() => {
     loadConnections();
   }, []);
@@ -146,6 +157,16 @@ export default function AdManager() {
                   <strong>{gam.reportType || "utm_campaign"}</strong>
                 </div>
               </div>
+
+              <div className="gam-card-actions">
+               <button
+                   className="sync-btn"
+                     onClick={() => syncConnection(gam.id)}
+  >
+    <RefreshCcw size={16} />
+    Sincronizar agora
+  </button>
+</div>
 
               <div className="gam-info-box">
                 <RefreshCcw size={16} />
