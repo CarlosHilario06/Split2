@@ -8,16 +8,19 @@ export default function GamConnectionModal({
 }) {
   const [name, setName] = useState("");
   const [networkCode, setNetworkCode] = useState("");
+  const [reportId, setReportId] = useState("");
   const [reportType, setReportType] = useState("utm_campaign");
 
   useEffect(() => {
     if (connection) {
       setName(connection.name || "");
       setNetworkCode(connection.networkCode || "");
+      setReportId(connection.reportId || "");
       setReportType(connection.reportType || "utm_campaign");
     } else {
       setName("");
       setNetworkCode("");
+      setReportId("");
       setReportType("utm_campaign");
     }
   }, [connection, open]);
@@ -30,6 +33,7 @@ export default function GamConnectionModal({
     onSave({
       name,
       networkCode,
+      reportId,
       reportType,
     });
   }
@@ -67,6 +71,18 @@ export default function GamConnectionModal({
               }
               placeholder="Ex: 23292093160"
               required
+            />
+          </label>
+
+          <label>
+            Report ID
+
+            <input
+              value={reportId}
+              onChange={(e) =>
+                setReportId(e.target.value)
+              }
+              placeholder="Ex: 7460106012"
             />
           </label>
 
