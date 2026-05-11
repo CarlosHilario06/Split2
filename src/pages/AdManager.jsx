@@ -38,30 +38,40 @@ export default function AdManager() {
   }
 
   async function saveConnection(payload) {
-    const isEditing = Boolean(editingConnection);
+  const isEditing = Boolean(editingConnection);
 
-    const url = isEditing
-      ? `${API_URL}/api/gam/connections/${editingConnection.id}`
-      : `${API_URL}/api/gam/connections`;
+  const url = isEditing
+    ? `${API_URL}/api/gam/connections/${editingConnection.id}`
+    : `${API_URL}/api/gam/connections`;
 
-    const method = isEditing ? "PUT" : "POST";
+  const method = isEditing ? "PUT" : "POST";
 
-    try {
-      await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-      setModalOpen(false);
-      setEditingConnection(null);
-      await loadConnections();
-    } catch (error) {
-      console.error("Erro ao salvar conexão:", error);
+    const data = await response.json();
+
+    console.log("Resposta salvar GAM:", data);
+
+    if (!response.ok) {
+      alert(data.error || "Erro ao salvar GAM");
+      return;
     }
+
+    setModalOpen(false);
+    setEditingConnection(null);
+    await loadConnections();
+  } catch (error) {
+    console.error("Erro ao salvar conexão:", error);
+    alert("Erro ao salvar conexão. Veja o console.");
   }
+}
 
   async function deleteConnection(id) {
     const confirmed = confirm("Deseja remover esta conexão?");
