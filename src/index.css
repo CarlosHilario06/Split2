@@ -1660,3 +1660,76 @@ select:focus-visible {
   display: block;
   margin-top: 4px;
 }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+}
+
+.gam-modal {
+  width: 100%;
+  max-width: 520px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  padding: 28px;
+}
+
+.gam-modal h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 30px;
+}
+
+.gam-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gam-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: #cbd5e1;
+}
+
+.gam-modal input,
+.gam-modal select {
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  padding: 0 16px;
+  color: white;
+  font-size: 15px;
+  outline: none;
+}
+
+.gam-modal input:focus,
+.gam-modal select:focus {
+  border-color: #00d4ff;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.modal-actions button {
+  min-width: 120px;
+}
+
+.modal-actions button:first-child {
+  background: rgba(255,255,255,0.06);
+  color: white;
+}
