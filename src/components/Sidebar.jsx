@@ -6,14 +6,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-
-import {
-  FolderKanban,
-  Link2,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
   BadgeDollarSign,
 } from "lucide-react";
 
