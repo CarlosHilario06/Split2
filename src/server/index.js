@@ -735,7 +735,8 @@ app.get("/api/gam/connections", async (req, res) => {
 
 app.post("/api/gam/connections", async (req, res) => {
   try {
-    const { name, networkCode } = req.body;
+
+const { name, networkCode, reportType } = req.body;
 
     if (!name || !networkCode) {
       return res.status(400).json({
@@ -745,9 +746,10 @@ app.post("/api/gam/connections", async (req, res) => {
 
     const created = await prisma.gamConnection.create({
       data: {
-        name: String(name).trim(),
-        networkCode: String(networkCode).trim(),
-      },
+  name: String(name).trim(),
+  networkCode: String(networkCode).trim(),
+  reportType: reportType || "utm_campaign",
+},
     });
 
     res.json(created);
@@ -764,16 +766,22 @@ app.put("/api/gam/connections/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const { name } = req.body;
+    const { name, networkCode, reportType } = req.body;
 
-    const updated = await prisma.gamConnection.update({
-      where: { id },
-      data: {
-        ...(name !== undefined && {
-          name: String(name).trim(),
-        }),
-      },
-    });
+const updated = await prisma.gamConnection.update({
+  where: { id },
+  data: {
+    ...(name !== undefined && {
+      name: String(name).trim(),
+    }),
+    ...(networkCode !== undefined && {
+      networkCode: String(networkCode).trim(),
+    }),
+    ...(reportType !== undefined && {
+      reportType: String(reportType).trim(),
+    }),
+  },
+});
 
     res.json(updated);
   } catch (error) {
