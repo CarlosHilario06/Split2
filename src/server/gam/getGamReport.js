@@ -2,13 +2,13 @@ import fs from "fs";
 import { google } from "googleapis";
 import { parseGamRows } from "./parseGamRows.js";
 
-const NETWORK_CODE = "23174459617";
 const REPORT_ID = "7460106012";
 
 const credentials = JSON.parse(process.env.GAM_OAUTH_JSON);
 const token = JSON.parse(process.env.GAM_TOKEN_JSON);
 
-const { client_id, client_secret, redirect_uris } = credentials.installed;
+const { client_id, client_secret, redirect_uris } =
+  credentials.installed;
 
 const auth = new google.auth.OAuth2(
   client_id,
@@ -19,29 +19,45 @@ const auth = new google.auth.OAuth2(
 auth.setCredentials(token);
 
 function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) =>
+    setTimeout(resolve, ms)
+  );
 }
 
-export async function getGamReportRows() {
+export async function getGamReportRows(
+  options = {}
+) {
+  const networkCode =
+    options.networkCode || "23174459617";
+
   console.log("⏳ Rodando relatório GAM...");
+  console.log(
+    "🌐 Network:",
+    networkCode
+  );
 
   const runResponse = await auth.request({
-    url: `https://admanager.googleapis.com/v1/networks/${NETWORK_CODE}/reports/${REPORT_ID}:run`,
+    url: `https://admanager.googleapis.com/v1/networks/${networkCode}/reports/${REPORT_ID}:run`,
     method: "POST",
     data: {},
   });
 
-  const operationName = runResponse.data.name;
+  const operationName =
+    runResponse.data.name;
 
-  console.log("📄 Operação:", operationName);
+  console.log(
+    "📄 Operação:",
+    operationName
+  );
 
   let operation;
 
   for (let i = 0; i < 20; i++) {
-    const statusResponse = await auth.request({
-      url: `https://admanager.googleapis.com/v1/${operationName}`,
-      method: "GET",
-    });
+    const statusResponse =
+      await auth.request({
+        url: `https://admanager.googleapis.com/v1/${operationName}`,
+        method: "GET",
+      });
 
     operation = statusResponse.data;
 
@@ -49,32 +65,48 @@ export async function getGamReportRows() {
       break;
     }
 
-    console.log("⏳ Aguardando relatório ficar pronto...");
+    console.log(
+      "⏳ Aguardando relatório ficar pronto..."
+    );
+
     await sleep(3000);
   }
 
   if (!operation?.done) {
-    throw new Error("Relatório GAM não ficou pronto a tempo");
+    throw new Error(
+      "Relatório GAM não ficou pronto a tempo"
+    );
   }
 
-  const reportResult = operation.response?.reportResult;
+  const reportResult =
+    operation.response?.reportResult;
 
   if (!reportResult) {
-    throw new Error("GAM não retornou reportResult");
+    throw new Error(
+      "GAM não retornou reportResult"
+    );
   }
 
-  console.log("✅ Relatório pronto:", reportResult);
+  console.log(
+    "✅ Relatório pronto:",
+    reportResult
+  );
 
   const rowsResponse = await auth.request({
     url: `https://admanager.googleapis.com/v1/${reportResult}:fetchRows?pageSize=10000`,
     method: "GET",
   });
 
-  return parseGamRows(rowsResponse.data.rows || []);
+  return parseGamRows(
+    rowsResponse.data.rows || []
+  );
 }
 
 export function parseGamCsv(filePath) {
-  const content = fs.readFileSync(filePath, "utf8");
+  const content = fs.readFileSync(
+    filePath,
+    "utf8"
+  );
 
   const lines = content
     .split("\n")
@@ -84,19 +116,43 @@ export function parseGamCsv(filePath) {
   const result = [];
 
   for (const line of lines) {
-    if (line.toLowerCase().startsWith("chaves-valor")) continue;
+    if (
+      line
+        .toLowerCase()
+        .startsWith("chaves-valor")
+    )
+      continue;
 
-    const [keyValue, impressionsRaw, ecpmRaw, revenueRaw] = line
+    const [
+      keyValue,
+      impressionsRaw,
+      ecpmRaw,
+      revenueRaw,
+    ] = line
       .split(",")
       .map((item) => item.trim());
 
-    if (!keyValue?.startsWith("utm_campaign=")) continue;
+    if (
+      !keyValue?.startsWith(
+        "utm_campaign="
+      )
+    )
+      continue;
 
     result.push({
       key: "utm_campaign",
-      value: keyValue.replace("utm_campaign=", ""),
-      impressions: Number(impressionsRaw || 0),
+
+      value: keyValue.replace(
+        "utm_campaign=",
+        ""
+      ),
+
+      impressions: Number(
+        impressionsRaw || 0
+      ),
+
       ecpm: Number(ecpmRaw || 0),
+
       revenue: Number(revenueRaw || 0),
     });
   }

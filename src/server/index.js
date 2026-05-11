@@ -778,8 +778,17 @@ app.post("/api/gam/sync/:id", async (req, res) => {
       });
     }
 
-    console.log("Sincronizando GAM:");
+    console.log("🔄 Sincronizando GAM:");
     console.log(gam);
+
+    const reportRows = await getGamReportRows({
+      networkCode: gam.networkCode,
+    });
+
+    console.log(
+      "📊 Linhas retornadas:",
+      reportRows.length
+    );
 
     await prisma.gamConnection.update({
       where: {
@@ -793,8 +802,8 @@ app.post("/api/gam/sync/:id", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Sync realizado",
-      gam,
+      rows: reportRows.length,
+      message: "Sync realizado com sucesso",
     });
   } catch (error) {
     console.error(
