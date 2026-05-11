@@ -6,6 +6,7 @@ import Splitters from "./pages/Splitters";
 import Links from "./pages/Links";
 import Utms from "./pages/Utms";
 import Login from "./pages/Login";
+import AdManager from "./pages/AdManager";
 
 export default function App() {
   const [isLogged, setIsLogged] = useState(
@@ -115,6 +116,13 @@ export default function App() {
               <span className="breadcrumb-current">Configurações</span>
             </>
           )}
+
+          {activePage === "admanager" && (
+  <>
+    <span className="breadcrumb-separator">›</span>
+    <span className="breadcrumb-current">Ad Manager</span>
+  </>
+)}
         </div>
 
         {activePage === "utms" && (
@@ -136,12 +144,14 @@ export default function App() {
         )}
 
         {activePage === "links" && (
-          <Links
-            project={selectedProject}
-            splitter={selectedSplitter}
-            onBack={backToSplitters}
-          />
-        )}
+  <Links
+    project={selectedProject}
+    splitter={selectedSplitter}
+    onBack={backToSplitters}
+  />
+)}
+
+{activePage === "admanager" && <AdManager />}
       </main>
     </div>
   );

@@ -8,6 +8,15 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import {
+  FolderKanban,
+  Link2,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  BadgeDollarSign,
+} from "lucide-react";
+
 export default function Sidebar({
   activePage,
   setActivePage,
@@ -47,6 +56,14 @@ export default function Sidebar({
           <Link2 size={18} />
           {!collapsed && <span>UTMs</span>}
         </button>
+
+        <button
+  className={activePage === "admanager" ? "active" : ""}
+  onClick={() => setActivePage("admanager")}
+>
+  <BadgeDollarSign size={18} />
+  {!collapsed && <span>Ad Manager</span>}
+</button>
       </div>
 
       <div className="sidebar-bottom">
