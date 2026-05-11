@@ -66,29 +66,93 @@ async function syncGamAutomatically() {
     gamSyncRunning = true;
     gamSyncError = false;
 
-    console.log("⏳ Atualizando dados do GAM...");
+    console.log("⏳ Atualizando GAMs...");
 
-    const reportRows = await getGamReportRows();
-    const links = await prisma.link.findMany();
-
-    for (const link of links) {
-      const campaign = link.utms?.utm_campaign;
-
-      const found = reportRows.find((row) => {
-        return (
-          normalize(row.key) === "utm_campaign" &&
-          normalize(row.value) === normalize(campaign)
-        );
-      });
-
-      await prisma.link.update({
-        where: { id: link.id },
-        data: {
-          ecpm: found?.ecpm || 0,
-          impressions: found?.impressions || 0,
-          revenue: found?.revenue || 0,
+    const gamConnections =
+      await prisma.gamConnection.findMany({
+        where: {
+          active: true,
         },
       });
+
+    const links = await prisma.link.findMany();
+
+    for (const gam of gamConnections) {
+      try {
+        console.log(
+          `🔄 Sincronizando ${gam.name}`
+        );
+
+        const reportRows =
+          await getGamReportRows({
+            networkCode: gam.networkCode,
+            reportId: gam.reportId,
+          });
+
+        console.log(
+          `📊 ${reportRows.length} linhas retornadas`
+        );
+
+        for (const link of links) {
+          const campaign =
+            link.utms?.utm_campaign;
+
+          const found = reportRows.find(
+            (row) => {
+              return (
+                normalize(row.key) ===
+                  "utm_campaign" &&
+                normalize(row.value) ===
+                  normalize(campaign)
+              );
+            }
+          );
+
+          if (!found) continue;
+
+          await prisma.link.update({
+            where: { id: link.id },
+
+            data: {
+              ecpm: found.ecpm || 0,
+              impressions:
+                found.impressions || 0,
+              revenue:
+                found.revenue || 0,
+            },
+          });
+        }
+
+        await prisma.gamConnection.update({
+          where: {
+            id: gam.id,
+          },
+
+          data: {
+            lastSyncAt: new Date(),
+            status: "connected",
+          },
+        });
+
+        console.log(
+          `✅ ${gam.name} sincronizado`
+        );
+      } catch (gamError) {
+        console.error(
+          `❌ Erro no GAM ${gam.name}:`,
+          gamError
+        );
+
+        await prisma.gamConnection.update({
+          where: {
+            id: gam.id,
+          },
+
+          data: {
+            status: "error",
+          },
+        });
+      }
     }
 
     await optimizeTrafficProbabilities();
@@ -96,14 +160,20 @@ async function syncGamAutomatically() {
     lastGamSync = new Date();
     gamSyncRunning = false;
 
-    console.log("✅ GAM atualizado automaticamente");
+    console.log(
+      "✅ Todos GAMs sincronizados"
+    );
   } catch (error) {
-    gamSyncError = true;
     gamSyncRunning = false;
+    gamSyncError = true;
 
-    console.error("❌ Erro ao atualizar GAM automaticamente:", error);
+    console.error(
+      "❌ Erro geral no sync GAM:",
+      error
+    );
   }
 }
+
 /* =========================
    PROJECTS
 ========================= */
@@ -783,8 +853,9 @@ app.post("/api/gam/sync/:id", async (req, res) => {
     console.log(gam);
 
     const reportRows = await getGamReportRows({
-      networkCode: gam.networkCode,
-    });
+  networkCode: gam.networkCode,
+  reportId: gam.reportId,
+});
 
     console.log(
       "📊 Linhas retornadas:",
