@@ -1536,3 +1536,127 @@ select:focus-visible {
 .gam-card-actions button {
   flex: 1;
 }
+
+.admanager-page {
+  width: 100%;
+}
+
+.admanager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.admanager-header h1 {
+  font-size: 42px;
+  margin-bottom: 6px;
+}
+
+.admanager-header p {
+  color: #94a3b8;
+}
+
+.connect-btn {
+  background: linear-gradient(135deg, #00ffb3, #00c2ff);
+  color: #001018;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gam-connections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gam-card {
+  background: rgba(10, 18, 35, 0.95);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 22px;
+  padding: 24px;
+}
+
+.gam-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.gam-top h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.gam-top span {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.gam-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.06);
+  color: white;
+  cursor: pointer;
+}
+
+.icon-btn.danger {
+  color: #ff5d5d;
+}
+
+.gam-status {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #00ff9d;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #00ff9d;
+}
+
+.gam-info-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.gam-info-box {
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.gam-info-box span {
+  display: block;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.gam-info-box strong {
+  display: block;
+  margin-top: 4px;
+}

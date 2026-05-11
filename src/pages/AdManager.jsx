@@ -1,53 +1,78 @@
+import {
+  Pencil,
+  Trash2,
+  RefreshCcw,
+  FileBarChart2,
+  Plus,
+} from "lucide-react";
+
 export default function AdManager() {
   const connections = [
     {
       id: 1,
-      name: "GAM Principal",
-      networkCode: "123456",
+      name: "WinUp - Ursa",
+      networkCode: "23292093160",
       status: "Conectado",
-      reports: 1,
-      lastSync: "há 42 min",
+      reports: 3,
+      lastSync: "Hoje às 09:00",
     },
   ];
 
   return (
-    <div className="page">
-      <div className="page-header">
+    <div className="admanager-page">
+      <div className="admanager-header">
         <div>
-          <h1>Ad Manager</h1>
-          <p>Conecte GAMs e configure relatórios automáticos.</p>
+          <h1>Contas Ad Manager</h1>
+          <p>Gerencie suas conexões GAM e relatórios automáticos.</p>
         </div>
 
-        <button className="primary-btn">Conectar novo GAM</button>
+        <button className="connect-btn">
+          <Plus size={18} />
+          Conectar Nova Conta
+        </button>
       </div>
 
-      <div className="gam-grid">
+      <div className="gam-connections">
         {connections.map((gam) => (
           <div className="gam-card" key={gam.id}>
-            <div className="gam-card-header">
+            <div className="gam-top">
               <div>
-                <h3>{gam.name}</h3>
-                <span>Network code: {gam.networkCode}</span>
+                <h2>{gam.name}</h2>
+                <span>ID: {gam.networkCode}</span>
               </div>
 
-              <strong>{gam.status}</strong>
-            </div>
+              <div className="gam-actions">
+                <button className="icon-btn">
+                  <Pencil size={16} />
+                </button>
 
-            <div className="gam-card-stats">
-              <div>
-                <span>Relatórios</span>
-                <b>{gam.reports}</b>
-              </div>
-
-              <div>
-                <span>Último sync</span>
-                <b>{gam.lastSync}</b>
+                <button className="icon-btn danger">
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
 
-            <div className="gam-card-actions">
-              <button>Configurar relatório</button>
-              <button>Sincronizar agora</button>
+            <div className="gam-status">
+              <span className="status-dot"></span>
+              {gam.status}
+            </div>
+
+            <div className="gam-info-grid">
+              <div className="gam-info-box">
+                <FileBarChart2 size={16} />
+                <div>
+                  <span>Relatórios ativos</span>
+                  <strong>{gam.reports}</strong>
+                </div>
+              </div>
+
+              <div className="gam-info-box">
+                <RefreshCcw size={16} />
+                <div>
+                  <span>Última sincronização</span>
+                  <strong>{gam.lastSync}</strong>
+                </div>
+              </div>
             </div>
           </div>
         ))}
