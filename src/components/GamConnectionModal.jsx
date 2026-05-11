@@ -52,7 +52,7 @@ export default function GamConnectionModal({
               onChange={(e) =>
                 setName(e.target.value)
               }
-              placeholder="Ex: WinUp - Ursa"
+              placeholder="Ex: Meu gam - Projeto"
               required
             />
           </label>
