@@ -1775,3 +1775,9 @@ select:focus-visible {
 .sync-btn:hover {
   background: rgba(0, 255, 179, 0.14);
 }
+
+.gam-card-footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-start;
+}
