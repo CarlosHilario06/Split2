@@ -736,7 +736,7 @@ app.get("/api/gam/connections", async (req, res) => {
 app.post("/api/gam/connections", async (req, res) => {
   try {
 
-const { name, networkCode, reportType } = req.body;
+const { name, networkCode, reportType, reportId } = req.body;
 
     if (!name || !networkCode) {
       return res.status(400).json({
@@ -749,6 +749,7 @@ const { name, networkCode, reportType } = req.body;
   name: String(name).trim(),
   networkCode: String(networkCode).trim(),
   reportType: reportType || "utm_campaign",
+  reportId: reportId ? String(reportId).trim() : null,
 },
     });
 
@@ -821,7 +822,7 @@ app.put("/api/gam/connections/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const { name, networkCode, reportType } = req.body;
+const { name, networkCode, reportType, reportId } = req.body;
 
 const updated = await prisma.gamConnection.update({
   where: { id },
@@ -829,12 +830,16 @@ const updated = await prisma.gamConnection.update({
     ...(name !== undefined && {
       name: String(name).trim(),
     }),
+    
     ...(networkCode !== undefined && {
       networkCode: String(networkCode).trim(),
     }),
     ...(reportType !== undefined && {
       reportType: String(reportType).trim(),
     }),
+    ...(reportId !== undefined && {
+  reportId: reportId ? String(reportId).trim() : null,
+}),
   },
 });
 
