@@ -72,6 +72,7 @@ model GamConnection {
   name        String
   networkCode String
   reportType  String   @default("utm_campaign")
+  reportId    String?
   active      Boolean  @default(true)
   status      String   @default("connected")
   lastSyncAt  DateTime?
