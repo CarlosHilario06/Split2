@@ -1751,3 +1751,27 @@ select:focus-visible {
   align-items: center;
   cursor: pointer;
 }
+
+.gam-card-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.sync-btn {
+  width: fit-content;
+  border: 1px solid rgba(0, 255, 179, 0.22);
+  background: rgba(0, 255, 179, 0.08);
+  color: #eafff8;
+  border-radius: 14px;
+  padding: 12px 18px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sync-btn:hover {
+  background: rgba(0, 255, 179, 0.14);
+}
