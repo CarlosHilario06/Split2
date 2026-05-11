@@ -1473,3 +1473,66 @@ select:focus-visible {
 
   transform: translateY(-1px);
 }
+
+.gam-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.gam-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.gam-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.gam-card-header h3 {
+  margin: 0 0 6px;
+}
+
+.gam-card-header span,
+.gam-card-stats span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.gam-card-header strong {
+  color: #22c55e;
+  font-size: 13px;
+}
+
+.gam-card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.gam-card-stats div {
+  background: rgba(2, 6, 23, 0.45);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.gam-card-stats b {
+  display: block;
+  margin-top: 6px;
+}
+
+.gam-card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.gam-card-actions button {
+  flex: 1;
+}
