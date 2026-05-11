@@ -712,6 +712,100 @@ app.delete("/api/routes/:id", async (req, res) => {
 });
 
 /* =========================
+   GAM CONNECTIONS
+========================= */
+
+app.get("/api/gam/connections", async (req, res) => {
+  try {
+    const connections = await prisma.gamConnection.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json(connections);
+  } catch (error) {
+    console.error("Erro ao buscar conexões GAM:", error);
+
+    res.status(500).json({
+      error: "Erro ao buscar conexões GAM",
+    });
+  }
+});
+
+app.post("/api/gam/connections", async (req, res) => {
+  try {
+    const { name, networkCode } = req.body;
+
+    if (!name || !networkCode) {
+      return res.status(400).json({
+        error: "Nome e Network Code são obrigatórios",
+      });
+    }
+
+    const created = await prisma.gamConnection.create({
+      data: {
+        name: String(name).trim(),
+        networkCode: String(networkCode).trim(),
+      },
+    });
+
+    res.json(created);
+  } catch (error) {
+    console.error("Erro ao criar conexão GAM:", error);
+
+    res.status(500).json({
+      error: "Erro ao criar conexão GAM",
+    });
+  }
+});
+
+app.put("/api/gam/connections/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    const { name } = req.body;
+
+    const updated = await prisma.gamConnection.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && {
+          name: String(name).trim(),
+        }),
+      },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error("Erro ao atualizar conexão GAM:", error);
+
+    res.status(500).json({
+      error: "Erro ao atualizar conexão GAM",
+    });
+  }
+});
+
+app.delete("/api/gam/connections/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    await prisma.gamConnection.delete({
+      where: { id },
+    });
+
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("Erro ao deletar conexão GAM:", error);
+
+    res.status(500).json({
+      error: "Erro ao deletar conexão GAM",
+    });
+  }
+});
+
+/* =========================
    DEBUG
 ========================= */
 
