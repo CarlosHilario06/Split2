@@ -96,15 +96,24 @@ export default function AdManager() {
   }
 
   async function syncConnection(id) {
-    try {
-      alert("Sync iniciado para o GAM ID: " + id);
+  try {
+    const response = await fetch(`${API_URL}/api/gam/sync/${id}`, {
+      method: "POST",
+    });
 
-      // próxima etapa:
-      // POST `${API_URL}/api/gam/sync/${id}`
-    } catch (error) {
-      console.error("Erro ao sincronizar GAM:", error);
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error || "Erro ao sincronizar GAM");
+      return;
     }
+
+    await loadConnections();
+  } catch (error) {
+    console.error("Erro ao sincronizar GAM:", error);
+    alert("Erro ao sincronizar GAM. Veja o console.");
   }
+}
 
   useEffect(() => {
     loadConnections();

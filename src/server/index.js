@@ -762,6 +762,48 @@ const { name, networkCode, reportType } = req.body;
   }
 });
 
+app.post("/api/gam/sync/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const gam = await prisma.gamConnection.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    if (!gam) {
+      return res.status(404).json({
+        error: "GAM não encontrado",
+      });
+    }
+
+    await prisma.gamConnection.update({
+      where: {
+        id: gam.id,
+      },
+
+      data: {
+        lastSyncAt: new Date(),
+      },
+    });
+
+    return res.json({
+      success: true,
+      message: "Sync realizado",
+    });
+  } catch (error) {
+    console.error(
+      "Erro ao sincronizar GAM:",
+      error
+    );
+
+    return res.status(500).json({
+      error: "Erro ao sincronizar GAM",
+    });
+  }
+});
+
 app.put("/api/gam/connections/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
