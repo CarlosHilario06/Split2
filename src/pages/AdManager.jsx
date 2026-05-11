@@ -14,46 +14,48 @@ export default function AdManager() {
   const [connections, setConnections] = useState([]);
 
   async function loadConnections() {
-    try {
-      const response = await fetch(
-        `${API_URL}/api/gam/connections`
-      );
+  try {
+    const response = await fetch(`${API_URL}/api/gam/connections`);
+    const data = await response.json();
 
-      const data = await response.json();
+    console.log("Conexões GAM:", data);
 
-      setConnections(data);
-    } catch (error) {
-      console.error("Erro ao buscar conexões:", error);
-    }
+    setConnections(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error("Erro ao buscar conexões:", error);
   }
+}
 
   async function createConnection() {
-    const name = prompt("Nome da conta GAM:");
+  const name = prompt("Nome da conta GAM:");
+  if (!name) return;
 
-    if (!name) return;
+  const networkCode = prompt("Network Code:");
+  if (!networkCode) return;
 
-    const networkCode = prompt("Network Code:");
+  try {
+    const response = await fetch(`${API_URL}/api/gam/connections`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, networkCode }),
+    });
 
-    if (!networkCode) return;
+    const data = await response.json();
 
-    try {
-      await fetch(`${API_URL}/api/gam/connections`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          name,
-          networkCode,
-        }),
-      });
-
-      loadConnections();
-    } catch (error) {
-      console.error("Erro ao criar conexão:", error);
+    if (!response.ok) {
+      alert(data.error || "Erro ao criar conexão");
+      return;
     }
+
+    alert("Conta criada com sucesso!");
+    await loadConnections();
+  } catch (error) {
+    console.error("Erro ao criar conexão:", error);
+    alert("Erro ao criar conexão. Veja o console.");
   }
+}
 
   async function deleteConnection(id) {
     const confirmed = confirm(
