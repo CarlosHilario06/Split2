@@ -778,6 +778,9 @@ app.post("/api/gam/sync/:id", async (req, res) => {
       });
     }
 
+    console.log("Sincronizando GAM:");
+    console.log(gam);
+
     await prisma.gamConnection.update({
       where: {
         id: gam.id,
@@ -791,6 +794,7 @@ app.post("/api/gam/sync/:id", async (req, res) => {
     return res.json({
       success: true,
       message: "Sync realizado",
+      gam,
     });
   } catch (error) {
     console.error(
