@@ -57,8 +57,6 @@ export default function AdManager() {
 
       const data = await response.json();
 
-      console.log("Resposta salvar GAM:", data);
-
       if (!response.ok) {
         alert(data.error || "Erro ao salvar GAM");
         return;
@@ -75,19 +73,13 @@ export default function AdManager() {
   }
 
   async function deleteConnection(id) {
-    const confirmed = confirm(
-      "Deseja remover esta conexão?"
-    );
-
+    const confirmed = confirm("Deseja remover esta conexão?");
     if (!confirmed) return;
 
     try {
-      await fetch(
-        `${API_URL}/api/gam/connections/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      await fetch(`${API_URL}/api/gam/connections/${id}`, {
+        method: "DELETE",
+      });
 
       await loadConnections();
     } catch (error) {
@@ -96,24 +88,26 @@ export default function AdManager() {
   }
 
   async function syncConnection(id) {
-  try {
-    const response = await fetch(`${API_URL}/api/gam/sync/${id}`, {
-      method: "POST",
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/gam/sync/${id}`, {
+        method: "POST",
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      alert(data.error || "Erro ao sincronizar GAM");
-      return;
+      if (!response.ok) {
+        alert(data.error || "Erro ao sincronizar GAM");
+        return;
+      }
+
+      await loadConnections();
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Erro ao sincronizar GAM:", error);
+      alert("Erro ao sincronizar GAM. Veja o console.");
     }
-
-    await loadConnections();
-  } catch (error) {
-    console.error("Erro ao sincronizar GAM:", error);
-    alert("Erro ao sincronizar GAM. Veja o console.");
   }
-}
 
   useEffect(() => {
     loadConnections();
@@ -124,17 +118,10 @@ export default function AdManager() {
       <div className="admanager-header">
         <div>
           <h1>Contas Ad Manager</h1>
-
-          <p>
-            Gerencie suas conexões GAM e
-            relatórios automáticos.
-          </p>
+          <p>Gerencie suas conexões GAM e relatórios automáticos.</p>
         </div>
 
-        <button
-          className="connect-btn"
-          onClick={openCreateModal}
-        >
+        <button className="connect-btn" onClick={openCreateModal}>
           <Plus size={18} />
           Conectar Nova Conta
         </button>
@@ -146,27 +133,20 @@ export default function AdManager() {
             <div className="gam-top">
               <div>
                 <h2>{gam.name}</h2>
-
-                <span>
-                  ID: {gam.networkCode}
-                </span>
+                <span>ID: {gam.networkCode}</span>
               </div>
 
               <div className="gam-actions">
                 <button
                   className="icon-btn"
-                  onClick={() =>
-                    openEditModal(gam)
-                  }
+                  onClick={() => openEditModal(gam)}
                 >
                   <Pencil size={16} />
                 </button>
 
                 <button
                   className="icon-btn danger"
-                  onClick={() =>
-                    deleteConnection(gam.id)
-                  }
+                  onClick={() => deleteConnection(gam.id)}
                 >
                   <Trash2 size={16} />
                 </button>
@@ -184,11 +164,7 @@ export default function AdManager() {
 
                 <div>
                   <span>Tipo de relatório</span>
-
-                  <strong>
-                    {gam.reportType ||
-                      "utm_campaign"}
-                  </strong>
+                  <strong>{gam.reportType || "utm_campaign"}</strong>
                 </div>
               </div>
 
@@ -196,15 +172,10 @@ export default function AdManager() {
                 <RefreshCcw size={16} />
 
                 <div>
-                  <span>
-                    Última sincronização
-                  </span>
-
+                  <span>Última sincronização</span>
                   <strong>
                     {gam.lastSyncAt
-                      ? new Date(
-                          gam.lastSyncAt
-                        ).toLocaleString()
+                      ? new Date(gam.lastSyncAt).toLocaleString()
                       : "Nunca"}
                   </strong>
                 </div>
@@ -214,9 +185,7 @@ export default function AdManager() {
             <div className="gam-card-footer">
               <button
                 className="sync-btn"
-                onClick={() =>
-                  syncConnection(gam.id)
-                }
+                onClick={() => syncConnection(gam.id)}
               >
                 <RefreshCcw size={16} />
                 Sincronizar agora
