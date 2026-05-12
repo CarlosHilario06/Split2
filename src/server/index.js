@@ -835,17 +835,11 @@ const { name, networkCode, reportType, reportId } = req.body;
 
 app.post("/api/gam/sync/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
 
-    const gam =
-  await prisma.gamConnection.findUnique({
-    where: {
-      id: Number(req.params.id),
-    },
-  });
-
-console.log("🔄 Sincronizando GAM:");
-console.log(gam);
+    const gam = await prisma.gamConnection.findUnique({
+      where: { id },
+    });
 
     if (!gam) {
       return res.status(404).json({
@@ -857,35 +851,60 @@ console.log(gam);
     console.log(gam);
 
     const reportRows = await getGamReportRows({
-  networkCode: gam.networkCode,
-  reportId: gam.reportId,
-});
+      networkCode: gam.networkCode,
+      reportId: gam.reportId,
+    });
 
-    console.log(
-      "📊 Linhas retornadas:",
-      reportRows.length
-    );
+    console.log("📊 Linhas retornadas:", reportRows.length);
+
+    const links = await prisma.link.findMany();
+
+    let updatedLinks = 0;
+
+    for (const link of links) {
+      const campaign = link.utms?.utm_campaign;
+
+      if (!campaign) continue;
+
+      const found = reportRows.find((row) => {
+        return (
+          normalize(row.key) === "utm_campaign" &&
+          normalize(row.value) === normalize(campaign)
+        );
+      });
+
+      if (!found) continue;
+
+      await prisma.link.update({
+        where: { id: link.id },
+        data: {
+          ecpm: found.ecpm || 0,
+          impressions: found.impressions || 0,
+          revenue: found.revenue || 0,
+        },
+      });
+
+      updatedLinks++;
+    }
+
+    await optimizeTrafficProbabilities();
 
     await prisma.gamConnection.update({
-      where: {
-        id: gam.id,
-      },
-
+      where: { id: gam.id },
       data: {
         lastSyncAt: new Date(),
+        status: "connected",
       },
     });
 
     return res.json({
       success: true,
       rows: reportRows.length,
+      updatedLinks,
       message: "Sync realizado com sucesso",
     });
   } catch (error) {
-    console.error(
-      "Erro ao sincronizar GAM:",
-      error
-    );
+    console.error("Erro ao sincronizar GAM:", error);
 
     return res.status(500).json({
       error: "Erro ao sincronizar GAM",
