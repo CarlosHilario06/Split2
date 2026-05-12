@@ -837,16 +837,15 @@ app.post("/api/gam/sync/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const gam = await prisma.gamConnection.update({
-  where: {
-    id: gam.id,
-  },
+    const gam =
+  await prisma.gamConnection.findUnique({
+    where: {
+      id: Number(req.params.id),
+    },
+  });
 
-  data: {
-    lastSyncAt: new Date(),
-    status: "connected",
-  },
-});
+console.log("🔄 Sincronizando GAM:");
+console.log(gam);
 
     if (!gam) {
       return res.status(404).json({
