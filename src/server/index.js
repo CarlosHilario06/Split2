@@ -855,33 +855,33 @@ app.post("/api/gam/sync/:id", async (req, res) => {
       reportId: gam.reportId,
     });
 
-    console.log(
-      "📊 Linhas retornadas:",
-      reportRows.length
-    );
+    console.log("📊 Linhas retornadas:", reportRows.length);
 
     const links = await prisma.link.findMany();
 
     let updatedLinks = 0;
 
     for (const link of links) {
-      const campaign =
-        link.utms?.utm_campaign;
+      let campaign = link.utms?.utm_campaign;
+
+      if (!campaign && link.url) {
+        try {
+          const parsedUrl = new URL(link.url);
+          campaign = parsedUrl.searchParams.get("utm_campaign");
+        } catch (error) {
+          console.log("URL inválida no link:", link.id, link.url);
+        }
+      }
 
       if (!campaign) {
-        console.log(
-          `⚠️ Link ${link.id} sem utm_campaign`
-        );
-
+        console.log(`⚠️ Link ${link.id} sem utm_campaign`);
         continue;
       }
 
       const found = reportRows.find((row) => {
         return (
-          normalize(row.key) ===
-            "utm_campaign" &&
-          normalize(row.value) ===
-            normalize(campaign)
+          normalize(row.key) === "utm_campaign" &&
+          normalize(row.value) === normalize(campaign)
         );
       });
 
@@ -893,8 +893,7 @@ app.post("/api/gam/sync/:id", async (req, res) => {
               key: found.key,
               value: found.value,
               ecpm: found.ecpm,
-              impressions:
-                found.impressions,
+              impressions: found.impressions,
               revenue: found.revenue,
             }
           : null,
@@ -903,38 +902,25 @@ app.post("/api/gam/sync/:id", async (req, res) => {
       if (!found) continue;
 
       await prisma.link.update({
-        where: {
-          id: link.id,
-        },
-
+        where: { id: link.id },
         data: {
           ecpm: found.ecpm || 0,
-          impressions:
-            found.impressions || 0,
-          revenue:
-            found.revenue || 0,
+          impressions: found.impressions || 0,
+          revenue: found.revenue || 0,
         },
       });
 
       updatedLinks++;
 
-      console.log(
-        `✅ Link ${link.id} atualizado`
-      );
+      console.log(`✅ Link ${link.id} atualizado`);
     }
 
-    console.log(
-      "📈 Links atualizados:",
-      updatedLinks
-    );
+    console.log("📈 Links atualizados:", updatedLinks);
 
     await optimizeTrafficProbabilities();
 
     await prisma.gamConnection.update({
-      where: {
-        id: gam.id,
-      },
-
+      where: { id: gam.id },
       data: {
         lastSyncAt: new Date(),
         status: "connected",
@@ -945,14 +931,10 @@ app.post("/api/gam/sync/:id", async (req, res) => {
       success: true,
       rows: reportRows.length,
       updatedLinks,
-      message:
-        "Sync realizado com sucesso",
+      message: "Sync realizado com sucesso",
     });
   } catch (error) {
-    console.error(
-      "Erro ao sincronizar GAM:",
-      error
-    );
+    console.error("Erro ao sincronizar GAM:", error);
 
     return res.status(500).json({
       error: "Erro ao sincronizar GAM",
