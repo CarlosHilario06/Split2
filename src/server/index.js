@@ -881,7 +881,9 @@ app.post("/api/gam/sync/:id", async (req, res) => {
       const found = reportRows.find((row) => {
         return (
           normalize(row.key) === "utm_campaign" &&
-          normalize(row.value) === normalize(campaign)
+          normalize(row.value).includes(
+          normalize(campaign)
+          )
         );
       });
 
