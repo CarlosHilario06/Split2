@@ -1781,3 +1781,54 @@ select:focus-visible {
   display: flex;
   justify-content: flex-start;
 }
+
+.gpv-page {
+  width: 100%;
+}
+
+.gpv-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.gpv-table-wrapper {
+  overflow-x: auto;
+  background: #111827;
+  border-radius: 16px;
+  border: 1px solid #1f2937;
+}
+
+.gpv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gpv-table th {
+  text-align: left;
+  padding: 14px;
+  font-size: 14px;
+  color: #9ca3af;
+  border-bottom: 1px solid #1f2937;
+}
+
+.gpv-table td {
+  padding: 14px;
+  border-bottom: 1px solid #1f2937;
+  font-size: 14px;
+}
+
+.gpv-positive {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.gpv-negative {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.gpv-loading {
+  font-size: 16px;
+  opacity: 0.8;
+}
