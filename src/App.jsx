@@ -1,5 +1,7 @@
 import { useState } from "react";
+
 import Sidebar from "./components/Sidebar";
+
 import Projects from "./pages/Projects";
 import Settings from "./pages/Settings";
 import Splitters from "./pages/Splitters";
@@ -7,6 +9,14 @@ import Links from "./pages/Links";
 import Utms from "./pages/Utms";
 import Login from "./pages/Login";
 import AdManager from "./pages/AdManager";
+
+import Analytics from "./pages/Analytics";
+import GanhoPorVisita from "./pages/GanhoPorVisita";
+import PicoBroad from "./pages/PicoBroad";
+import TrafegoDia from "./pages/TrafegoDia";
+import ScrollPermanencia from "./pages/ScrollPermanencia";
+import RendimentoSplit from "./pages/RendimentoSplit";
+import LeadsCampanha from "./pages/LeadsCampanha";
 
 export default function App() {
   const [isLogged, setIsLogged] = useState(
@@ -118,11 +128,68 @@ export default function App() {
           )}
 
           {activePage === "admanager" && (
-  <>
-    <span className="breadcrumb-separator">›</span>
-    <span className="breadcrumb-current">Ad Manager</span>
-  </>
-)}
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">Ad Manager</span>
+            </>
+          )}
+
+          {activePage === "analytics" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">Analytics</span>
+            </>
+          )}
+
+          {activePage === "ganhoPorVisita" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">
+                Ganho por Visita
+              </span>
+            </>
+          )}
+
+          {activePage === "picoBroad" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">Pico do Broad</span>
+            </>
+          )}
+
+          {activePage === "trafegoDia" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">Tráfego por Dia</span>
+            </>
+          )}
+
+          {activePage === "scrollPermanencia" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">
+                Scroll & Permanência
+              </span>
+            </>
+          )}
+
+          {activePage === "rendimentoSplit" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">
+                Rendimento por Split
+              </span>
+            </>
+          )}
+
+          {activePage === "leadsCampanha" && (
+            <>
+              <span className="breadcrumb-separator">›</span>
+              <span className="breadcrumb-current">
+                Leads por Campanha
+              </span>
+            </>
+          )}
         </div>
 
         {activePage === "utms" && (
@@ -144,14 +211,34 @@ export default function App() {
         )}
 
         {activePage === "links" && (
-  <Links
-    project={selectedProject}
-    splitter={selectedSplitter}
-    onBack={backToSplitters}
-  />
-)}
+          <Links
+            project={selectedProject}
+            splitter={selectedSplitter}
+            onBack={backToSplitters}
+          />
+        )}
 
-{activePage === "admanager" && <AdManager />}
+        {activePage === "admanager" && <AdManager />}
+
+        {activePage === "analytics" && <Analytics />}
+
+        {activePage === "ganhoPorVisita" && <GanhoPorVisita />}
+
+        {activePage === "picoBroad" && <PicoBroad />}
+
+        {activePage === "trafegoDia" && <TrafegoDia />}
+
+        {activePage === "scrollPermanencia" && (
+          <ScrollPermanencia />
+        )}
+
+        {activePage === "rendimentoSplit" && (
+          <RendimentoSplit />
+        )}
+
+        {activePage === "leadsCampanha" && (
+          <LeadsCampanha />
+        )}
       </main>
     </div>
   );
