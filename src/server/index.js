@@ -1027,6 +1027,61 @@ console.error(
   }
 });
 
+app.get("/api/analytics/ganho-por-visita", async (req, res) => {
+  try {
+    const gaRows = await getGamCampaignSessions({
+      startDate: req.query.startDate || "7daysAgo",
+      endDate: req.query.endDate || "today",
+    });
+
+    const links = await prisma.link.findMany({
+      orderBy: {
+        revenue: "desc",
+      },
+    });
+
+    const data = links
+      .map((link) => {
+        const campaign =
+          link.utms?.utm_campaign || "";
+
+        const gaMatch = gaRows.find((row) => {
+          return normalize(row.campaign) === normalize(campaign);
+        });
+
+        const sessions = gaMatch?.sessions || 0;
+        const revenue = Number(link.revenue || 0);
+
+        return {
+          id: link.id,
+          url: link.url,
+          campaign,
+          sessions,
+          revenue,
+          ecpm: Number(link.ecpm || 0),
+          ganhoPorVisita:
+            sessions > 0 ? revenue / sessions : 0,
+        };
+      })
+      .filter((item) => item.campaign);
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error(
+      "Erro ao calcular ganho por visita:",
+      error.response?.data || error.message || error
+    );
+
+    res.status(500).json({
+      success: false,
+      error: "Erro ao calcular ganho por visita",
+    });
+  }
+});
+
 /* =========================
    DEBUG
 ========================= */
