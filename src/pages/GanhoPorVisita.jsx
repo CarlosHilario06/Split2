@@ -48,62 +48,48 @@ export default function GanhoPorVisita() {
         <div className="gpv-table-wrapper">
           <table className="gpv-table">
             <thead>
-              <tr>
-  <th>País</th>
-  <th>Campanha</th>
-  <th>Sessões</th>
-  <th>Revenue</th>
-  <th>eCPM</th>
-  <th>Ganho/Visita</th>
-  <th>URL</th>
-</tr>
-            </thead>
-
+  <tr>
+    <th>País</th>
+    <th>UTM</th>
+    <th>Visitas</th>
+    <th>Receita</th>
+    <th>Ganho/Visita</th>
+    <th>Links</th>
+  </tr>
+</thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-  <td>{item.country || "-"}</td>
+  {items.map((item) => (
+    <tr key={item.id}>
+      <td>{item.country}</td>
 
-  <td>{item.campaign}</td>
+      <td>{item.medium}</td>
 
-  <td>{item.sessions}</td>
+      <td>{item.sessions}</td>
 
-  <td>
-    $
-    {Number(item.revenue || 0).toFixed(2)}
-  </td>
+      <td>
+        $
+        {Number(
+          item.revenue || 0
+        ).toFixed(2)}
+      </td>
 
-  <td>
-    $
-    {Number(item.ecpm || 0).toFixed(2)}
-  </td>
+      <td
+        className={
+          item.ganhoPorVisita > 0
+            ? "gpv-positive"
+            : "gpv-negative"
+        }
+      >
+        $
+        {Number(
+          item.ganhoPorVisita || 0
+        ).toFixed(4)}
+      </td>
 
-  <td
-    className={
-      item.ganhoPorVisita > 0
-        ? "gpv-positive"
-        : "gpv-negative"
-    }
-  >
-    $
-    {Number(
-      item.ganhoPorVisita || 0
-    ).toFixed(4)}
-  </td>
-
-  <td>
-  <a
-    href={item.url}
-    target="_blank"
-    rel="noreferrer"
-    className="gpv-link"
-  >
-    <ExternalLink size={16} />
-  </a>
-</td>
-</tr>
-              ))}
-            </tbody>
+      <td>{item.links}</td>
+    </tr>
+  ))}
+</tbody>
           </table>
         </div>
       )}

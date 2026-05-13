@@ -1040,73 +1040,73 @@ app.get("/api/analytics/ganho-por-visita", async (req, res) => {
       },
     });
 
-    const data = links
-      .map((link) => {
-        const campaign =
-          link.utms?.utm_campaign || "";
+    const groups = {};
 
-        const gaMatch = gaRows.find((row) => {
-          return normalize(row.campaign) === normalize(campaign);
-        });
+    for (const link of links) {
+      const campaign = link.utms?.utm_campaign || "";
+      const medium = link.utms?.utm_medium || "";
 
-        const sessions = gaMatch?.sessions || 0;
-        const revenue = Number(link.revenue || 0);
+      if (!campaign || !medium) continue;
 
-        let country = "";
+      const gaMatch = gaRows.find((row) => {
+        return normalize(row.campaign) === normalize(campaign);
+      });
 
-try {
-  const parsedUrl = new URL(link.url);
-  const host = parsedUrl.hostname;
+      const sessions = gaMatch?.sessions || 0;
+      const revenue = Number(link.revenue || 0);
 
-  const subdomain = host
-    .split(".")[0]
-    ?.toLowerCase();
+      let country = "";
 
-  if (subdomain === "lt")
-    country = "Lithuania";
+      try {
+        const parsedUrl = new URL(link.url);
+        const host = parsedUrl.hostname;
 
-  if (subdomain === "de")
-    country = "Germany";
+        const subdomain = host
+          .split(".")[0]
+          ?.toLowerCase();
 
-  if (subdomain === "it")
-    country = "Italy";
+        if (subdomain === "lt") country = "Lithuania";
+        if (subdomain === "de") country = "Germany";
+        if (subdomain === "it") country = "Italy";
+        if (subdomain === "fr") country = "France";
+        if (subdomain === "nl") country = "Netherlands";
+        if (subdomain === "ro") country = "Romania";
+        if (subdomain === "jp") country = "Japan";
+        if (subdomain === "cz") country = "Czech Republic";
+        if (subdomain === "en") country = "England";
+      } catch {
+        country = "";
+      }
 
-  if (subdomain === "fr")
-    country = "France";
+      const key = `${country || "Unknown"}-${medium}`;
 
-  if (subdomain === "nl")
-    country = "Netherlands";
+      if (!groups[key]) {
+        groups[key] = {
+          id: key,
+          country: country || "Unknown",
+          medium,
+          sessions: 0,
+          revenue: 0,
+          links: 0,
+        };
+      }
 
-  if (subdomain === "ro")
-    country = "Romania";
+      groups[key].sessions += sessions;
+      groups[key].revenue += revenue;
+      groups[key].links += 1;
+    }
 
-  if (subdomain === "jp")
-    country = "Japan";
-
-  if (subdomain === "cz")
-    country = "Czech Republic";
-
-  if (subdomain === "en")
-    country = "England";
-
-} catch {
-  country = "";
-}
-
-return {
-  id: link.id,
-  country,
-  url: link.url,
-  campaign,
-  sessions,
-  revenue,
-  ecpm: Number(link.ecpm || 0),
-
-  ganhoPorVisita:
-    sessions > 0 ? revenue / sessions : 0,
-};
-      })
-      .filter((item) => item.campaign);
+    const data = Object.values(groups)
+      .map((item) => ({
+        ...item,
+        ganhoPorVisita:
+          item.sessions > 0
+            ? item.revenue / item.sessions
+            : 0,
+      }))
+      .sort((a, b) => {
+        return b.ganhoPorVisita - a.ganhoPorVisita;
+      });
 
     res.json({
       success: true,
