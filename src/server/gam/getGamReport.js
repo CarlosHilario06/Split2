@@ -11,7 +11,7 @@ const token = JSON.parse(process.env.GAM_TOKEN_JSON);
 const { client_id, client_secret, redirect_uris } =
   credentials.installed;
 
-const auth = new google.auth.OAuth2(
+export const auth = new google.auth.OAuth2(
   client_id,
   client_secret,
   redirect_uris[0]

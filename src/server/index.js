@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import prisma from "./prisma.js";
 import { getGamReportRows } from "./gam/getGamReport.js";
+import { getGamCampaignSessions } from "./gam/getGamCampaignSessions.js";
 import cron from "node-cron";
 
 const app = express();
@@ -995,6 +996,31 @@ app.delete("/api/gam/connections/:id", async (req, res) => {
 
     res.status(500).json({
       error: "Erro ao deletar conexão GAM",
+    });
+  }
+});
+
+/* =========================
+   ANALYTICS - GA4
+========================= */
+
+app.get("/api/analytics/ga-campaign-sessions", async (req, res) => {
+  try {
+    const data = await getGamCampaignSessions({
+      startDate: req.query.startDate || "7daysAgo",
+      endDate: req.query.endDate || "today",
+    });
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Erro ao buscar sessões GA4:", error);
+
+    res.status(500).json({
+      success: false,
+      error: "Erro ao buscar sessões GA4",
     });
   }
 });
