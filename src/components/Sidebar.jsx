@@ -13,7 +13,6 @@ import {
   Timer,
   GitBranch,
   Users,
-  ClipboardCheck,
 } from "lucide-react";
 
 export default function Sidebar({
@@ -41,7 +40,7 @@ export default function Sidebar({
           onClick={() => setActivePage("projects")}
         >
           <FolderKanban size={18} />
-          {!collapsed && <span>Projetos</span>}
+          {!collapsed && <span>Splits</span>}
         </button>
 
         <button
@@ -114,14 +113,6 @@ export default function Sidebar({
         >
           <Users size={18} />
           {!collapsed && <span>Leads por Campanha</span>}
-        </button>
-
-        <button
-          className={activePage === "analiseManual" ? "active" : ""}
-          onClick={() => setActivePage("analiseManual")}
-        >
-          <ClipboardCheck size={18} />
-          {!collapsed && <span>Análise Manual</span>}
         </button>
       </div>
 
