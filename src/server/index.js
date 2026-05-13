@@ -1058,16 +1058,37 @@ try {
   const parsedUrl = new URL(link.url);
   const host = parsedUrl.hostname;
 
-  country = host.split(".")[0].toUpperCase();
+  const subdomain = host
+    .split(".")[0]
+    ?.toLowerCase();
 
-  if (country === "LT") country = "Lithuania";
-  if (country === "DE") country = "Germany";
-  if (country === "IT") country = "Italy";
-  if (country === "FR") country = "France";
-  if (country === "NL") country = "Netherlands";
-  if (country === "RO") country = "Romania";
-  if (country === "JP") country = "Japan";
-  if (country === "CZ") country = "Czech Republic";
+  if (subdomain === "lt")
+    country = "Lithuania";
+
+  if (subdomain === "de")
+    country = "Germany";
+
+  if (subdomain === "it")
+    country = "Italy";
+
+  if (subdomain === "fr")
+    country = "France";
+
+  if (subdomain === "nl")
+    country = "Netherlands";
+
+  if (subdomain === "ro")
+    country = "Romania";
+
+  if (subdomain === "jp")
+    country = "Japan";
+
+  if (subdomain === "cz")
+    country = "Czech Republic";
+
+  if (subdomain === "en")
+    country = "England";
+
 } catch {
   country = "";
 }

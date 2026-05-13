@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "../index.css";
+import { ExternalLink } from "lucide-react";
 
 export default function GanhoPorVisita() {
   const [items, setItems] = useState([]);
@@ -91,14 +92,15 @@ export default function GanhoPorVisita() {
   </td>
 
   <td>
-    <a
-      href={item.url}
-      target="_blank"
-      rel="noreferrer"
-    >
-      Abrir
-    </a>
-  </td>
+  <a
+    href={item.url}
+    target="_blank"
+    rel="noreferrer"
+    className="gpv-link"
+  >
+    <ExternalLink size={16} />
+  </a>
+</td>
 </tr>
               ))}
             </tbody>

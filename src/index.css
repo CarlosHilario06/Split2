@@ -1832,3 +1832,14 @@ select:focus-visible {
   font-size: 16px;
   opacity: 0.8;
 }
+
+.gpv-link {
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gpv-link:hover {
+  opacity: 0.7;
+}
