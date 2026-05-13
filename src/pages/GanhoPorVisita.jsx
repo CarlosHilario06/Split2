@@ -6,18 +6,18 @@ export default function GanhoPorVisita() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/analytics/ganho-por-visita")
-      .then((res) => res.json())
-      .then((data) => {
-        setItems(data.data || []);
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  fetch("https://split2.up.railway.app/api/analytics/ganho-por-visita")
+    .then((res) => res.json())
+    .then((data) => {
+      setItems(data.data || []);
+    })
+    .catch((error) => {
+      console.error(error);
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+}, []);
 
   if (loading) {
     return (
