@@ -1052,16 +1052,38 @@ app.get("/api/analytics/ganho-por-visita", async (req, res) => {
         const sessions = gaMatch?.sessions || 0;
         const revenue = Number(link.revenue || 0);
 
-        return {
-          id: link.id,
-          url: link.url,
-          campaign,
-          sessions,
-          revenue,
-          ecpm: Number(link.ecpm || 0),
-          ganhoPorVisita:
-            sessions > 0 ? revenue / sessions : 0,
-        };
+        let country = "";
+
+try {
+  const parsedUrl = new URL(link.url);
+  const host = parsedUrl.hostname;
+
+  country = host.split(".")[0].toUpperCase();
+
+  if (country === "LT") country = "Lithuania";
+  if (country === "DE") country = "Germany";
+  if (country === "IT") country = "Italy";
+  if (country === "FR") country = "France";
+  if (country === "NL") country = "Netherlands";
+  if (country === "RO") country = "Romania";
+  if (country === "JP") country = "Japan";
+  if (country === "CZ") country = "Czech Republic";
+} catch {
+  country = "";
+}
+
+return {
+  id: link.id,
+  country,
+  url: link.url,
+  campaign,
+  sessions,
+  revenue,
+  ecpm: Number(link.ecpm || 0),
+
+  ganhoPorVisita:
+    sessions > 0 ? revenue / sessions : 0,
+};
       })
       .filter((item) => item.campaign);
 

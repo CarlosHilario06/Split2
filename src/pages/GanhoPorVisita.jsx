@@ -48,48 +48,58 @@ export default function GanhoPorVisita() {
           <table className="gpv-table">
             <thead>
               <tr>
-                <th>Campanha</th>
-                <th>Sessões</th>
-                <th>Revenue</th>
-                <th>eCPM</th>
-                <th>Ganho/Visita</th>
-              </tr>
+  <th>País</th>
+  <th>Campanha</th>
+  <th>Sessões</th>
+  <th>Revenue</th>
+  <th>eCPM</th>
+  <th>Ganho/Visita</th>
+  <th>URL</th>
+</tr>
             </thead>
 
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.campaign}</td>
+  <td>{item.country || "-"}</td>
 
-                  <td>{item.sessions}</td>
+  <td>{item.campaign}</td>
 
-                  <td>
-                    $
-                    {Number(
-                      item.revenue || 0
-                    ).toFixed(2)}
-                  </td>
+  <td>{item.sessions}</td>
 
-                  <td>
-                    $
-                    {Number(
-                      item.ecpm || 0
-                    ).toFixed(2)}
-                  </td>
+  <td>
+    $
+    {Number(item.revenue || 0).toFixed(2)}
+  </td>
 
-                  <td
-                    className={
-                      item.ganhoPorVisita > 0
-                        ? "gpv-positive"
-                        : "gpv-negative"
-                    }
-                  >
-                    $
-                    {Number(
-                      item.ganhoPorVisita || 0
-                    ).toFixed(4)}
-                  </td>
-                </tr>
+  <td>
+    $
+    {Number(item.ecpm || 0).toFixed(2)}
+  </td>
+
+  <td
+    className={
+      item.ganhoPorVisita > 0
+        ? "gpv-positive"
+        : "gpv-negative"
+    }
+  >
+    $
+    {Number(
+      item.ganhoPorVisita || 0
+    ).toFixed(4)}
+  </td>
+
+  <td>
+    <a
+      href={item.url}
+      target="_blank"
+      rel="noreferrer"
+    >
+      Abrir
+    </a>
+  </td>
+</tr>
               ))}
             </tbody>
           </table>
