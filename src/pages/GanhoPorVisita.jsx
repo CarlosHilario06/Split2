@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "../styles/ganhoPorVisita.css";
+import "../index.css";
 
 export default function GanhoPorVisita() {
   const [items, setItems] = useState([]);
