@@ -1016,8 +1016,10 @@ app.get("/api/analytics/ga-campaign-sessions", async (req, res) => {
       data,
     });
   } catch (error) {
-    console.error("Erro ao buscar sessões GA4:", error);
-
+console.error(
+  "Erro ao buscar sessões GA4:",
+  error.response?.data || error.message || error
+);
     res.status(500).json({
       success: false,
       error: "Erro ao buscar sessões GA4",
