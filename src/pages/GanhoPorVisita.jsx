@@ -1,24 +1,25 @@
 import { useEffect, useState } from "react";
 import "../index.css";
-import { ExternalLink } from "lucide-react";
 
 export default function GanhoPorVisita() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  fetch("https://split2.up.railway.app/api/analytics/ganho-por-visita")
-    .then((res) => res.json())
-    .then((data) => {
-      setItems(data.data || []);
-    })
-    .catch((error) => {
-      console.error(error);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-}, []);
+    fetch(
+      "https://split2.up.railway.app/api/analytics/ganho-por-visita-real"
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(data.data || []);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   if (loading) {
     return (
@@ -37,7 +38,7 @@ export default function GanhoPorVisita() {
   return (
     <div className="gpv-page">
       <h1 className="gpv-title">
-        Ganho por Visita
+        Ganho por Visita Real por País
       </h1>
 
       {items.length === 0 ? (
@@ -48,48 +49,57 @@ export default function GanhoPorVisita() {
         <div className="gpv-table-wrapper">
           <table className="gpv-table">
             <thead>
-  <tr>
-    <th>País</th>
-    <th>UTM</th>
-    <th>Visitas</th>
-    <th>Receita</th>
-    <th>Ganho/Visita</th>
-    <th>Links</th>
-  </tr>
-</thead>
+              <tr>
+                <th>País</th>
+                <th>Visitas</th>
+                <th>Revenue</th>
+                <th>eCPM</th>
+                <th>Links</th>
+                <th>URLs</th>
+                <th>RPV</th>
+              </tr>
+            </thead>
+
             <tbody>
-  {items.map((item) => (
-    <tr key={item.id}>
-      <td>{item.country}</td>
+              {items.map((item) => (
+                <tr key={item.country}>
+                  <td>{item.country}</td>
 
-      <td>{item.medium}</td>
+                  <td>{item.visits}</td>
 
-      <td>{item.sessions}</td>
+                  <td>
+                    $
+                    {Number(
+                      item.revenue || 0
+                    ).toFixed(2)}
+                  </td>
 
-      <td>
-        $
-        {Number(
-          item.revenue || 0
-        ).toFixed(2)}
-      </td>
+                  <td>
+                    $
+                    {Number(
+                      item.ecpm || 0
+                    ).toFixed(2)}
+                  </td>
 
-      <td
-        className={
-          item.ganhoPorVisita > 0
-            ? "gpv-positive"
-            : "gpv-negative"
-        }
-      >
-        $
-        {Number(
-          item.ganhoPorVisita || 0
-        ).toFixed(4)}
-      </td>
+                  <td>{item.links}</td>
 
-      <td>{item.links}</td>
-    </tr>
-  ))}
-</tbody>
+                  <td>{item.urls}</td>
+
+                  <td
+                    className={
+                      item.ganhoPorVisita > 0
+                        ? "gpv-positive"
+                        : "gpv-negative"
+                    }
+                  >
+                    $
+                    {Number(
+                      item.ganhoPorVisita || 0
+                    ).toFixed(4)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       )}
