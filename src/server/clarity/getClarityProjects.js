@@ -2,7 +2,9 @@ export async function getClarityProjects() {
   const token = process.env.CLARITY_API_TOKEN;
 
   if (!token) {
-    throw new Error("CLARITY_API_TOKEN não configurado");
+    throw new Error(
+      "CLARITY_API_TOKEN não configurado"
+    );
   }
 
   const response = await fetch(
@@ -14,11 +16,17 @@ export async function getClarityProjects() {
     }
   );
 
-  const data = await response.json();
+  const text = await response.text();
 
   if (!response.ok) {
-    throw new Error(JSON.stringify(data));
+    throw new Error(text);
   }
 
-  return data;
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      "Resposta inválida do Clarity"
+    );
+  }
 }
