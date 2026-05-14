@@ -829,10 +829,33 @@ app.get("/api/clarity/popular-pages", async (req, res) => {
 
 app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
   try {
-    const clarityPages =
-      await getClarityPopularPages();
+    const clarityRaw = await getClarityProjects();
+    const clarityPages = await getClarityPopularPages();
 
     const links = await prisma.link.findMany();
+
+    const trafficMetric = clarityRaw.find((item) => {
+      return item.metricName === "Traffic";
+    });
+
+    const trafficInfo =
+      trafficMetric?.information?.[0] || {};
+
+    const humanVisits = Number(
+      trafficInfo.totalSessionCount || 0
+    );
+
+    const botVisits = Number(
+      trafficInfo.totalBotSessionCount || 0
+    );
+
+    const totalVisits =
+      humanVisits + botVisits;
+
+    const humanRate =
+      totalVisits > 0
+        ? (humanVisits / totalVisits) * 100
+        : 0;
 
     const groups = {};
 
@@ -874,6 +897,9 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
         groups[country] = {
           country,
           visits: 0,
+          humanVisits,
+          botVisits,
+          humanRate,
           revenue: 0,
           ecpm: 0,
           links: 0,
@@ -896,11 +922,16 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
           item.visits > 0
             ? item.revenue / item.visits
             : 0,
+
+        ganhoPorVisitaHumana:
+          item.humanVisits > 0
+            ? item.revenue / item.humanVisits
+            : 0,
       }))
       .sort((a, b) => {
         return (
-          b.ganhoPorVisita -
-          a.ganhoPorVisita
+          b.ganhoPorVisitaHumana -
+          a.ganhoPorVisitaHumana
         );
       });
 
