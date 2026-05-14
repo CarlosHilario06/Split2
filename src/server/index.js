@@ -7,6 +7,7 @@ import cron from "node-cron";
 import { getClarityProjects } from "./clarity/getClarityProjects.js";
 import { getClarityPopularPages } from "./clarity/getClarityPopularPages.js";
 
+
 const app = express();
 
 let lastGamSync = null;
@@ -822,6 +823,82 @@ app.get("/api/clarity/popular-pages", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Erro ao buscar páginas populares do Clarity",
+    });
+  }
+});
+
+app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
+  try {
+    const clarityPages =
+      await getClarityPopularPages();
+
+    const links = await prisma.link.findMany();
+
+    const data = [];
+
+    for (const page of clarityPages) {
+      const matchedLinks = links.filter((link) => {
+        try {
+          const clarityPath = new URL(page.url)
+            .pathname
+            .replace(/\/$/, "");
+
+          const linkPath = new URL(link.url)
+            .pathname
+            .replace(/\/$/, "");
+
+          return clarityPath === linkPath;
+        } catch {
+          return false;
+        }
+      });
+
+      const revenue = matchedLinks.reduce(
+        (sum, link) => {
+          return sum + Number(link.revenue || 0);
+        },
+        0
+      );
+
+      const ecpm = matchedLinks.reduce(
+        (sum, link) => {
+          return sum + Number(link.ecpm || 0);
+        },
+        0
+      );
+
+      data.push({
+        url: page.url,
+        country: page.country,
+        visits: page.visits,
+        links: matchedLinks.length,
+        revenue,
+        ecpm,
+
+        ganhoPorVisita:
+          page.visits > 0
+            ? revenue / page.visits
+            : 0,
+      });
+    }
+
+    data.sort((a, b) => {
+      return b.ganhoPorVisita - a.ganhoPorVisita;
+    });
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error(
+      "Erro ganho por visita real:",
+      error.message || error
+    );
+
+    res.status(500).json({
+      success: false,
+      error: "Erro ao calcular ganho por visita real",
     });
   }
 });
