@@ -38,7 +38,7 @@ export default function GanhoPorVisita() {
   return (
     <div className="gpv-page">
       <h1 className="gpv-title">
-        Ganho por Visita Real por País
+        Ganho por Visita Real
       </h1>
 
       {items.length === 0 ? (
@@ -52,11 +52,8 @@ export default function GanhoPorVisita() {
               <tr>
                 <th>País</th>
                 <th>Visitas</th>
-                <th>Revenue</th>
-                <th>eCPM</th>
-                <th>Links</th>
-                <th>URLs</th>
-                <th>RPV</th>
+                <th>Receita</th>
+                <th>GPV</th>
               </tr>
             </thead>
 
@@ -73,17 +70,6 @@ export default function GanhoPorVisita() {
                       item.revenue || 0
                     ).toFixed(2)}
                   </td>
-
-                  <td>
-                    $
-                    {Number(
-                      item.ecpm || 0
-                    ).toFixed(2)}
-                  </td>
-
-                  <td>{item.links}</td>
-
-                  <td>{item.urls}</td>
 
                   <td
                     className={
