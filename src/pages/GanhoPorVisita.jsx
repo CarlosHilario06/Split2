@@ -52,8 +52,12 @@ export default function GanhoPorVisita() {
               <tr>
                 <th>País</th>
                 <th>Visitas</th>
+                <th>Humanas</th>
+                <th>Bots</th>
+                <th>Taxa Humana</th>
                 <th>Receita</th>
-                <th>GPV</th>
+                <th>RPV</th>
+                <th>RPV Humano</th>
               </tr>
             </thead>
 
@@ -63,6 +67,17 @@ export default function GanhoPorVisita() {
                   <td>{item.country}</td>
 
                   <td>{item.visits}</td>
+
+                  <td>{item.humanVisits}</td>
+
+                  <td>{item.botVisits}</td>
+
+                  <td>
+                    {Number(
+                      item.humanRate || 0
+                    ).toFixed(1)}
+                    %
+                  </td>
 
                   <td>
                     $
@@ -81,6 +96,21 @@ export default function GanhoPorVisita() {
                     $
                     {Number(
                       item.ganhoPorVisita || 0
+                    ).toFixed(4)}
+                  </td>
+
+                  <td
+                    className={
+                      item.ganhoPorVisitaHumana >
+                      0
+                        ? "gpv-positive"
+                        : "gpv-negative"
+                    }
+                  >
+                    $
+                    {Number(
+                      item.ganhoPorVisitaHumana ||
+                        0
                     ).toFixed(4)}
                   </td>
                 </tr>
