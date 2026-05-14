@@ -834,7 +834,7 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
 
     const links = await prisma.link.findMany();
 
-    const data = [];
+    const groups = {};
 
     for (const page of clarityPages) {
       const matchedLinks = links.filter((link) => {
@@ -867,24 +867,42 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
         0
       );
 
-      data.push({
-        url: page.url,
-        country: page.country,
-        visits: page.visits,
-        links: matchedLinks.length,
-        revenue,
-        ecpm,
+      const country =
+        page.country || "Unknown";
 
-        ganhoPorVisita:
-          page.visits > 0
-            ? revenue / page.visits
-            : 0,
-      });
+      if (!groups[country]) {
+        groups[country] = {
+          country,
+          visits: 0,
+          revenue: 0,
+          ecpm: 0,
+          links: 0,
+          urls: 0,
+        };
+      }
+
+      groups[country].visits += page.visits;
+      groups[country].revenue += revenue;
+      groups[country].ecpm += ecpm;
+      groups[country].links += matchedLinks.length;
+      groups[country].urls += 1;
     }
 
-    data.sort((a, b) => {
-      return b.ganhoPorVisita - a.ganhoPorVisita;
-    });
+    const data = Object.values(groups)
+      .map((item) => ({
+        ...item,
+
+        ganhoPorVisita:
+          item.visits > 0
+            ? item.revenue / item.visits
+            : 0,
+      }))
+      .sort((a, b) => {
+        return (
+          b.ganhoPorVisita -
+          a.ganhoPorVisita
+        );
+      });
 
     res.json({
       success: true,
@@ -898,7 +916,8 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Erro ao calcular ganho por visita real",
+      error:
+        "Erro ao calcular ganho por visita real",
     });
   }
 });
