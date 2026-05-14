@@ -5,6 +5,7 @@ import { getGamReportRows } from "./gam/getGamReport.js";
 import { getGamCampaignSessions } from "./gam/getGamCampaignSessions.js";
 import cron from "node-cron";
 import { getClarityProjects } from "./clarity/getClarityProjects.js";
+import { getClarityPopularPages } from "./clarity/getClarityPopularPages.js";
 
 const app = express();
 
@@ -800,6 +801,27 @@ app.get("/api/clarity/projects", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Erro ao buscar projetos Clarity",
+    });
+  }
+});
+
+app.get("/api/clarity/popular-pages", async (req, res) => {
+  try {
+    const data = await getClarityPopularPages();
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error(
+      "Erro Clarity Popular Pages:",
+      error.message || error
+    );
+
+    res.status(500).json({
+      success: false,
+      error: "Erro ao buscar páginas populares do Clarity",
     });
   }
 });
