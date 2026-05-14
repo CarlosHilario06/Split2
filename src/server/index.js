@@ -13,6 +13,10 @@ const app = express();
 let lastGamSync = null;
 let gamSyncRunning = false;
 let gamSyncError = false;
+let clarityAnalyticsCache = null;
+let clarityAnalyticsCacheAt = null;
+let clarityAnalyticsRunning = false;
+let clarityAnalyticsError = null;
 
 app.use(cors({
   origin: [
@@ -63,6 +67,34 @@ async function optimizeTrafficProbabilities() {
   }
 
   console.log("✅ Probabilidades otimizadas automaticamente");
+}
+
+async function refreshClarityAnalyticsCache() {
+  if (clarityAnalyticsRunning) return;
+
+  try {
+    clarityAnalyticsRunning = true;
+    clarityAnalyticsError = null;
+
+    const clarityRaw = await getClarityProjects();
+    const clarityPages = await getClarityPopularPages();
+    const links = await prisma.link.findMany();
+
+    clarityAnalyticsCache = {
+      clarityRaw,
+      clarityPages,
+      links,
+    };
+
+    clarityAnalyticsCacheAt = new Date();
+
+    console.log("✅ Cache Clarity atualizado");
+  } catch (error) {
+    clarityAnalyticsError = error.message || String(error);
+    console.error("❌ Erro ao atualizar cache Clarity:", error);
+  } finally {
+    clarityAnalyticsRunning = false;
+  }
 }
 
 async function syncGamAutomatically() {
@@ -829,10 +861,23 @@ app.get("/api/clarity/popular-pages", async (req, res) => {
 
 app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
   try {
-    const clarityRaw = await getClarityProjects();
-    const clarityPages = await getClarityPopularPages();
+    if (!clarityAnalyticsCache) {
+      await refreshClarityAnalyticsCache();
+    }
 
-    const links = await prisma.link.findMany();
+    if (!clarityAnalyticsCache) {
+      return res.status(503).json({
+        success: false,
+        error: "Cache do Clarity ainda não disponível",
+        running: clarityAnalyticsRunning,
+      });
+    }
+
+    const {
+      clarityRaw,
+      clarityPages,
+      links,
+    } = clarityAnalyticsCache;
 
     const trafficMetric = clarityRaw.find((item) => {
       return item.metricName === "Traffic";
@@ -937,6 +982,9 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
 
     res.json({
       success: true,
+      lastUpdatedAt: clarityAnalyticsCacheAt,
+      running: clarityAnalyticsRunning,
+      error: clarityAnalyticsError,
       data,
     });
   } catch (error) {
@@ -1601,6 +1649,8 @@ app.get("/go/:slug", async (req, res) => {
 });
 
 syncGamAutomatically();
+refreshClarityAnalyticsCache();
+
 
 cron.schedule("0 * * * *", syncGamAutomatically);
 
