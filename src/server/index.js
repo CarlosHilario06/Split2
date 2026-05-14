@@ -4,6 +4,7 @@ import prisma from "./prisma.js";
 import { getGamReportRows } from "./gam/getGamReport.js";
 import { getGamCampaignSessions } from "./gam/getGamCampaignSessions.js";
 import cron from "node-cron";
+import { getClarityProjects } from "./clarity/getClarityProjects.js";
 
 const app = express();
 
