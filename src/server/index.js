@@ -782,6 +782,27 @@ app.delete("/api/routes/:id", async (req, res) => {
   }
 });
 
+app.get("/api/clarity/projects", async (req, res) => {
+  try {
+    const data = await getClarityProjects();
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error(
+      "Erro Clarity:",
+      error.message || error
+    );
+
+    res.status(500).json({
+      success: false,
+      error: "Erro ao buscar projetos Clarity",
+    });
+  }
+});
+
 /* =========================
    GAM CONNECTIONS
 ========================= */
