@@ -113,7 +113,19 @@ async function syncGamAutomatically() {
 
     const links = await prisma.link.findMany();
 
-    for (const gam of gamConnections) {
+console.log("🧹 Limpando métricas antigas do GAM...");
+
+await prisma.link.updateMany({
+  data: {
+    impressions: 0,
+    revenue: 0,
+    ecpm: 0,
+  },
+});
+
+console.log("✅ Métricas antigas resetadas");
+
+for (const gam of gamConnections) {
       try {
         console.log(
           `🔄 Sincronizando ${gam.name}`
