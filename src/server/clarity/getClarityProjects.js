@@ -19,8 +19,10 @@ export async function getClarityProjects() {
   const text = await response.text();
 
   if (!response.ok) {
-    throw new Error(text);
-  }
+  throw new Error(
+    `Clarity API error ${response.status}: ${text || response.statusText}`
+  );
+}
 
   try {
     return JSON.parse(text);
