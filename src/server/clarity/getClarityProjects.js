@@ -1,4 +1,4 @@
-export async function getClarityProjectList() {
+export async function getClarityProjects() {
   const token = process.env.CLARITY_API_TOKEN;
 
   if (!token) {
@@ -6,7 +6,7 @@ export async function getClarityProjectList() {
   }
 
   const response = await fetch(
-    "https://www.clarity.ms/export-data/api/v1/projects",
+    "https://www.clarity.ms/export-data/api/v1/project-live-insights",
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -18,15 +18,13 @@ export async function getClarityProjectList() {
 
   if (!response.ok) {
     throw new Error(
-      `Clarity projects API error ${response.status}: ${
-        text || response.statusText
-      }`
+      `Clarity API error ${response.status}: ${text || response.statusText}`
     );
   }
 
   try {
     return JSON.parse(text);
   } catch {
-    throw new Error("Resposta inválida da lista de projetos Clarity");
+    throw new Error("Resposta inválida do Clarity");
   }
 }
