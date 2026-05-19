@@ -14,8 +14,12 @@ const app = express();
 let lastGamSync = null;
 let gamSyncRunning = false;
 let gamSyncError = false;
-let clarityAnalyticsCache = null;
-let clarityAnalyticsCacheAt = null;
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+let clarityAnalyticsCache = {};
+let clarityAnalyticsCacheAt = {};
 let clarityAnalyticsRunning = false;
 let clarityAnalyticsError = null;
 
@@ -77,17 +81,25 @@ async function refreshClarityAnalyticsCache() {
     clarityAnalyticsRunning = true;
     clarityAnalyticsError = null;
 
-    const clarityRaw = await getClarityProjects();
-    const clarityPages = await getClarityPopularPages();
+    const clarityRaw = await getClarityProjects({
+  numOfDays: 1,
+});
+
+const clarityPages = await getClarityPopularPages({
+  numOfDays: 1,
+});
     const links = await prisma.link.findMany();
 
-    clarityAnalyticsCache = {
-      clarityRaw,
-      clarityPages,
-      links,
-    };
+    const todayKey = getTodayKey();
 
-    clarityAnalyticsCacheAt = new Date();
+clarityAnalyticsCache[todayKey] = {
+  clarityRaw,
+  clarityPages,
+  links,
+};
+
+clarityAnalyticsCacheAt[todayKey] =
+  new Date();
 
     console.log("✅ Cache Clarity atualizado");
   } catch (error) {
@@ -895,11 +907,13 @@ app.get("/api/clarity/project-list", async (req, res) => {
 
 app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
   try {
-    if (!clarityAnalyticsCache) {
-      await refreshClarityAnalyticsCache();
-    }
+    const todayKey = getTodayKey();
 
-    if (!clarityAnalyticsCache) {
+if (!clarityAnalyticsCache[todayKey]) {
+  await refreshClarityAnalyticsCache();
+}
+
+if (!clarityAnalyticsCache[todayKey]) {
       return res.status(503).json({
         success: false,
         error: "Cache do Clarity ainda não disponível",
@@ -908,10 +922,10 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
     }
 
     const {
-      clarityRaw,
-      clarityPages,
-      links,
-    } = clarityAnalyticsCache;
+  clarityRaw,
+  clarityPages,
+  links,
+} = clarityAnalyticsCache[todayKey];
 
     const trafficMetric = clarityRaw.find((item) => {
       return item.metricName === "Traffic";
@@ -986,7 +1000,7 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
         };
       }
 
-      groups[country].visits += page.visits;
+      groups[country].visits += Number(page.visits || 0);
       groups[country].revenue += revenue;
       groups[country].ecpm += ecpm;
       groups[country].links += matchedLinks.length;
@@ -1016,10 +1030,11 @@ app.get("/api/analytics/ganho-por-visita-real", async (req, res) => {
 
     res.json({
       success: true,
-      lastUpdatedAt: clarityAnalyticsCacheAt,
-      running: clarityAnalyticsRunning,
-      error: clarityAnalyticsError,
-      data,
+        lastUpdatedAt:
+        clarityAnalyticsCacheAt[todayKey],
+        running: clarityAnalyticsRunning,
+        error: clarityAnalyticsError,
+        data,
     });
   } catch (error) {
     console.error(
@@ -1683,7 +1698,7 @@ app.get("/go/:slug", async (req, res) => {
 });
 
 syncGamAutomatically();
-refreshClarityAnalyticsCache();
+// refreshClarityAnalyticsCache();
 
 
 cron.schedule("0 * * * *", syncGamAutomatically);
