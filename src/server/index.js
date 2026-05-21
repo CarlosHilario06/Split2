@@ -1697,11 +1697,11 @@ app.get("/go/:slug", async (req, res) => {
   }
 });
 
-// syncGamAutomatically();
+syncGamAutomatically();
 // refreshClarityAnalyticsCache();
 
 
-// cron.schedule("0 * * * *", syncGamAutomatically);
+cron.schedule("0 * * * *", syncGamAutomatically);
 
 const PORT = process.env.PORT || 3001;
 
